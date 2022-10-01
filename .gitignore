@@ -1,0 +1,15 @@
+# Swap files
+**/*.swp
+**/*.swo
+
+**/bla*
+**/doit*
+**/lala*
+**/nono*
+
+**/*.log
+
+coverage/
+node_modules/
+
+**/tags
