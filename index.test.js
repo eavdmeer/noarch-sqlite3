@@ -4,7 +4,7 @@ const async = require('async');
 
 const Database = require('./');
 
-const dbFile = './test/test.db3';
+const dbFile = '/tmp/test.db3';
 const db = new Database(dbFile);
 
 beforeAll(done =>
@@ -50,7 +50,7 @@ describe('noarch-sqlite3.constructor', () =>
 {
   it('properly detects missing sqlite3 executable', () =>
   {
-    expect(() => new Database('./test/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
+    expect(() => new Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
       .toThrow(/sqlite3 executable .* not found/);
   });
   it('properly detects non-existing database directory', done =>
