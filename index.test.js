@@ -1,44 +1,94 @@
-/* global describe, it, expect, beforeAll, afterAll, afterEach */
+/* global jest, describe, it, expect, beforeAll, afterAll, afterEach */
 const fs = require('fs');
 const async = require('async');
+const cp = require('node:child_process');
 
 const Database = require('./');
 
 const dbFile = '/tmp/test.db3';
 
-let workingSqlite = true;
-
-let db = null;
+function standaloneTests(db)
+{
+  describe('noarch-sqlite3.safe', () =>
+  {
+    it('escapes single quotes correctly', () =>
+    {
+      expect(db.safe('no quotes here')).toBe('no quotes here');
+      expect(db.safe('don\'t mess this up'))
+        .toBe('don\'\'t mess this up');
+      expect(db.safe('isn\'t it 5 o\'clock'))
+        .toBe('isn\'\'t it 5 o\'\'clock');
+    });
+  });
+  describe('noarch-sqlite3.quote', () =>
+  {
+    it('properly quotes values', () =>
+    {
+      expect(db.quote('string value')).toBe('\'string value\'');
+      expect(db.quote(0)).toBe(0);
+      expect(db.quote(100)).toBe(100);
+      expect(db.quote(100.0)).toBe(100.0);
+      expect(db.quote('10')).toBe('\'10\'');
+      expect(db.quote('10.0')).toBe('\'10.0\'');
+    });
+  });
+  describe('noarch-sqlite3.expandArgs', () =>
+  {
+    it('properly works without bind parameters', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=\'dashboard\'';
+      const d = undefined;
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
+    });
+    it('properly substitutes a single value in a query', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=?';
+      const d = [ 'dashboard' ];
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
+    });
+    it('properly substitutes multiple values in a querY', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = [ 'dashboard', 'both' ];
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
+    });
+    it('properly substitutes mixed type values in a querY', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = [ 'dashboard', 121 ];
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=121');
+    });
+    it('properly catches invalid types for data', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = 'dashboard';
+      expect(() => db.expandArgs(q, d)).toThrow(/Invalid type for query data/);
+    });
+    it('properly catches missing bind parameter values for a query', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = [ 'dashboard' ];
+      expect(() => db.expandArgs(q, d)).toThrow(/Too few .* bind parameter values/);
+    });
+    it('properly catches extra bind parameter values for a query', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = [ 'dashboard', 'both', 'too many' ];
+      expect(() => db.expandArgs(q, d)).toThrow(/Too many .* bind parameter values/);
+    });
+  });
+}
 
 // Figure out whether we have a real working sqlite3 that's sufficiently
 // new for -json to work
 try
 {
-  db = new Database(dbFile);
-}
-catch (ex)
-{
-  if (
-    /sqlite3 executable .* not found/.test(ex.message) ||
-    /Unable to determine sqlite3 version/.test(ex.message) ||
-    /requires at least sqlite3/.test(ex.message) ||
-    /Invalid sqlite3 version detected/.test(ex.message)
-  )
-  {
-    // We don't have a working sqlite3 on the system
-    console.log(`No working sqlite3:\n ${ex.message}\nRunning alternative tests`);
-    workingSqlite = false;
-  }
-  else
-  {
-    console.log('RETHROW');
-    throw ex;
-  }
-}
+  const db = new Database(dbFile);
 
-if (workingSqlite)
-{
-  // Only preform the normal tests when we have a working sqlite3
   beforeAll(done =>
   {
     const queries = [
@@ -101,89 +151,7 @@ if (workingSqlite)
       });
     });
   });
-  describe('noarch-sqlite3.safe', () =>
-  {
-    it('escapes single quotes correctly', () =>
-    {
-      expect(db.safe('no quotes here')).toBe('no quotes here');
-      expect(db.safe('don\'t mess this up'))
-        .toBe('don\'\'t mess this up');
-      expect(db.safe('isn\'t it 5 o\'clock'))
-        .toBe('isn\'\'t it 5 o\'\'clock');
-    });
-  });
-  describe('noarch-sqlite3.quote', () =>
-  {
-    it('properly quotes values', () =>
-    {
-      expect(db.quote('string value')).toBe('\'string value\'');
-      expect(db.quote(0)).toBe(0);
-      expect(db.quote(100)).toBe(100);
-      expect(db.quote(100.0)).toBe(100.0);
-      expect(db.quote('10')).toBe('\'10\'');
-      expect(db.quote('10.0')).toBe('\'10.0\'');
-    });
-  });
-  describe('noarch-sqlite3.safe', () =>
-  {
-    it('escapes single quotes correctly', () =>
-    {
-      expect(db.safe('no quotes here')).toBe('no quotes here');
-      expect(db.safe('don\'t mess this up'))
-        .toBe('don\'\'t mess this up');
-      expect(db.safe('isn\'t it 5 o\'clock'))
-        .toBe('isn\'\'t it 5 o\'\'clock');
-    });
-  });
-  describe('noarch-sqlite3.expandArgs', () =>
-  {
-    it('properly works without bind parameters', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=\'dashboard\'';
-      const d = undefined;
-      expect(db.expandArgs(q, d))
-        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
-    });
-    it('properly substitutes a single value in a query', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=?';
-      const d = [ 'dashboard' ];
-      expect(db.expandArgs(q, d))
-        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
-    });
-    it('properly substitutes multiple values in a querY', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = [ 'dashboard', 'both' ];
-      expect(db.expandArgs(q, d))
-        .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
-    });
-    it('properly substitutes mixed type values in a querY', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = [ 'dashboard', 121 ];
-      expect(db.expandArgs(q, d))
-        .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=121');
-    });
-    it('properly catches invalid types for data', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = 'dashboard';
-      expect(() => db.expandArgs(q, d)).toThrow(/Invalid type for query data/);
-    });
-    it('properly catches missing bind parameter values for a query', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = [ 'dashboard' ];
-      expect(() => db.expandArgs(q, d)).toThrow(/Too few .* bind parameter values/);
-    });
-    it('properly catches extra bind parameter values for a query', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = [ 'dashboard', 'both', 'too many' ];
-      expect(() => db.expandArgs(q, d)).toThrow(/Too many .* bind parameter values/);
-    });
-  });
+  standaloneTests(db);
   describe('noarch-sqlite3.query', () =>
   {
     it('properly selects the default record', done =>
@@ -387,11 +355,50 @@ if (workingSqlite)
     });
   });
 }
-else
+catch (ex)
 {
-  // We need to mock execFile and execFileSync
-  it('runs a fake test', () =>
+  // Check for known exceptions that we expect
+  if (
+    /sqlite3 executable .* not found/.test(ex.message) ||
+    /Unable to determine sqlite3 version/.test(ex.message) ||
+    /requires at least sqlite3/.test(ex.message) ||
+    /Invalid sqlite3 version detected/.test(ex.message)
+  )
   {
-    expect(1).toBeTruthy();
+    // We don't have a working sqlite3 on the system
+    console.log(`No working sqlite3:\n ${ex.message}\nRunning alternative tests`);
+  }
+  else
+  {
+    // Re-throw other exceptions
+    throw ex;
+  }
+
+  // We need to mock execFile
+  cp.execFile = jest.fn(
+    /* eslint-disable-next-line prefer-arrow-callback */
+    function(...args)
+    {
+      const callback = args.pop();
+      callback(null, '[{"timeout":30000}][{"name": "fake"}]');
+    }
+  );
+
+  // Need to mock execFileSync
+  // eslint-disable-next-line no-sync
+  cp.execFileSync = jest.fn()
+    .mockReturnValueOnce('4.37.0 2021-12-09 01:34:53 9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl')
+    .mockReturnValue('3.30.0 2021-12-09 01:34:53 9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl');
+
+  describe('noarch-sqlite3.constructor', () =>
+  {
+    it('properly detects unsupported sqlite3 versions', () =>
+    {
+      expect(() => new Database('/tmp/broken.db3'))
+        .toThrow(/requires at least sqlite3/);
+    });
   });
+
+  // const db = new Database(dbFile);
+  // standaloneTests(db);
 }
