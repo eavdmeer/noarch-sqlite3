@@ -1,9 +1,12 @@
 /* global jest, describe, it, expect, beforeAll, afterAll, afterEach */
+const cp = require('node:child_process');
 const fs = require('fs');
 const async = require('async');
-const cp = require('node:child_process');
 
 const Database = require('./');
+
+// Need to mock execFileSync and execFile
+jest.mock('node:child_process');
 
 const dbFile = '/tmp/test.db3';
 
@@ -319,7 +322,7 @@ try
   {
     fs.unlink(dbFile, err =>
     {
-    // We don't care if the file does not exist
+      // We don't care if the file does not exist
       if (err && err.code !== 'ENOENT')
       {
         done(err);
@@ -331,6 +334,7 @@ try
 
   afterEach(done =>
   {
+    jest.clearAllMocks();
     db.query('DELETE FROM packages WHERE package <> \'dashboard\'', done);
   });
 
@@ -377,21 +381,7 @@ catch (ex)
     throw ex;
   }
 
-  // We need to mock execFile
-  cp.execFile = jest.fn(
-    /* eslint-disable-next-line prefer-arrow-callback */
-    function(...args)
-    {
-      const callback = args.pop();
-      callback(null, '[{"timeout":30000}][{"name": "fake"}]');
-    }
-  );
-
-  // Need to mock execFileSync
-  // eslint-disable-next-line no-sync
-  cp.execFileSync = jest.fn()
-    .mockReturnValueOnce('4.37.0 2021-12-09 01:34:53 9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl')
-    .mockReturnValue('3.30.0 2021-12-09 01:34:53 9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl');
+  cp.activateOverride();
 
   describe('noarch-sqlite3.constructor', () =>
   {
@@ -402,6 +392,6 @@ catch (ex)
     });
   });
 
-  // const db = new Database(dbFile);
-  // standaloneTests(db);
+  const db = new Database(dbFile);
+  standaloneTests(db);
 }
