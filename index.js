@@ -4,7 +4,9 @@ const debug = require('debug')('@eavdmeer/noarch-sqlite3');
 const semver = require('semver');
 
 const defaultOptions = {
-  sqlite3Path: '/usr/bin/sqlite3'
+  sqlite3Path: '/usr/bin/sqlite3',
+  busyTimeout: 30000,
+  enableForeignKeys: true
 };
 
 function helper(dbPath, options = {})
@@ -88,13 +90,17 @@ helper.prototype.expandArgs = function(query, data)
 
   return result;
 };
-helper.prototype.query = function(...args)
+helper.prototype.runQueries = function(queries, callback)
 {
-  const callback = args.pop();
-  const query = this.expandArgs(...args);
-  debug(`running query: ${query}`);
+  // Add the required PRAGMA commands
+  const list = [ `PRAGMA busy_timeout=${this.options.busyTimeout}` ];
+  if (this.options.enableForeignKeys)
+  {
+    list.push('PRAGMA foreign_keys=ON');
+  }
+  list.push(...queries);
 
-  const pars = [ '-json', this.db, query ];
+  const pars = [ '-json', this.db, list.join(';') ];
   execFile(this.options.sqlite3Path, pars, (err, stdout, stderr) =>
   {
     if (err)
@@ -104,13 +110,24 @@ helper.prototype.query = function(...args)
     }
     try
     {
-      callback(null, stdout ? JSON.parse(stdout) : stdout);
+      // Remove the first line. It will contain the output of the PRAGMA
+      // busy_timeout command similar to: [{"timeout":30000}]
+      const answer = stdout.replace(/[^\n]*\n/, '');
+      callback(null, answer ? JSON.parse(answer) : answer);
     }
     catch (ex)
     {
-      callback(new Error(`Failed to run query: ${ex.message}`));
+      callback(new Error(`Failed to run query: ${ex.message} in ${stdout}`));
     }
   });
+};
+helper.prototype.query = function(...args)
+{
+  const callback = args.pop();
+  const query = this.expandArgs(...args);
+  debug(`running query: ${query}`);
+
+  this.runQueries([ query ], callback);
 };
 
 module.exports = helper;

@@ -59,7 +59,11 @@ db.query('SELECT * FROM table', (err, records) =>
 
 Options can be one of the following:
 
-* `sqlite3Path`: full path the the `sqlite3` executable. Allows you to override the default location: `/usr/bin/sqlite3`
+* `sqlite3Path`: full path the the `sqlite3` executable. Allows you to override the default location (/usr/bin/sqlite3)`
+
+* `busyTimeout`: allows you to override the default busy timeout of 30000 ms
+
+* `enableForeignKeys`: allows you to override enforcements of foreign keys (default: true)
 
 ## License
 
@@ -69,3 +73,5 @@ Options can be one of the following:
 ##
 
 [npm]: https://www.npmjs.com/
+
+[yarn]: https://yarnpkg.com/
