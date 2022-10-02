@@ -4,7 +4,9 @@ const debug = require('debug')('@eavdmeer/noarch-sqlite3');
 const semver = require('semver');
 
 const defaultOptions = {
-  sqlite3Path: '/usr/bin/sqlite3'
+  sqlite3Path: '/usr/bin/sqlite3',
+  busyTimeout: 30000,
+  enableForeignKeys: true
 };
 
 function helper(dbPath, options = {})
@@ -94,7 +96,14 @@ helper.prototype.query = function(...args)
   const query = this.expandArgs(...args);
   debug(`running query: ${query}`);
 
-  const pars = [ '-json', this.db, query ];
+  const queries = [ `PRAGMA busy_timeout=${this.options.busyTimeout}` ];
+  if (this.options.enableForeignKeys)
+  {
+    queries.push('PRAGMA foreign_keys=ON');
+  }
+  queries.push(query);
+
+  const pars = [ '-json', this.db, queries.join(';') ];
   execFile(this.options.sqlite3Path, pars, (err, stdout, stderr) =>
   {
     if (err)
@@ -102,13 +111,14 @@ helper.prototype.query = function(...args)
       callback(new Error(`Failed to run query: ${stderr}`));
       return;
     }
+    const answer = stdout.replace(/[^\n]*\n/, '');
     try
     {
-      callback(null, stdout ? JSON.parse(stdout) : stdout);
+      callback(null, answer ? JSON.parse(answer) : answer);
     }
     catch (ex)
     {
-      callback(new Error(`Failed to run query: ${ex.message}`));
+      callback(new Error(`Failed to run query: ${ex.message} in ${answer}`));
     }
   });
 };
