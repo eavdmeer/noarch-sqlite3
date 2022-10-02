@@ -83,75 +83,8 @@ function standaloneTests(db)
   });
 }
 
-// Figure out whether we have a real working sqlite3 that's sufficiently
-// new for -json to work
-try
+function queryTests(db)
 {
-  const db = new Database(dbFile);
-
-  beforeAll(done =>
-  {
-    const queries = [
-      `CREATE TABLE IF NOT EXISTS packages(
-      package STRING NOT nulL,
-      url STRING NOT NULL,
-      npa STRING NOT NULL);`,
-      `INSERT INTO packages
-      (package, url, npa)
-     VALUES
-       ('dashboard', 'https://dev.azure.com/P00743-dashboard', 'web')`
-    ];
-    async.eachSeries(queries, (query, cb) =>
-    {
-      db.query(query, err => cb(err));
-    }, err =>
-    {
-      done(err);
-    });
-  });
-  afterAll(done =>
-  {
-    fs.unlink(dbFile, err =>
-    {
-    // We don't care if the file does not exist
-      if (err && err.code !== 'ENOENT')
-      {
-        done(err);
-        return;
-      }
-      done();
-    });
-  });
-
-  afterEach(done =>
-  {
-    db.query('DELETE FROM packages WHERE package <> \'dashboard\'', done);
-  });
-
-  describe('noarch-sqlite3.constructor', () =>
-  {
-    it('properly detects missing sqlite3 executable', () =>
-    {
-      expect(() => new Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
-        .toThrow(/sqlite3 executable .* not found/);
-    });
-    it('properly detects non-existing database directory', done =>
-    {
-    // expect(() => new Database('./missing-dir/broken.db3'))
-    //   .toThrow();
-      const ndb = new Database('./missing-dir/broken.db3');
-      const query = `CREATE TABLE IF NOT EXISTS packages(
-      package STRING NOT nulL,
-      url STRING NOT NULL,
-      npa STRING NOT NULL);`;
-      ndb.query(query, err =>
-      {
-        expect(err.message).toMatch(/unable to open database/);
-        done();
-      });
-    });
-  });
-  standaloneTests(db);
   describe('noarch-sqlite3.query', () =>
   {
     it('properly selects the default record', done =>
@@ -354,6 +287,76 @@ try
       });
     });
   });
+}
+
+// Figure out whether we have a real working sqlite3 that's sufficiently
+// new for -json to work
+try
+{
+  const db = new Database(dbFile);
+
+  beforeAll(done =>
+  {
+    const queries = [
+      `CREATE TABLE IF NOT EXISTS packages(
+      package STRING NOT nulL,
+      url STRING NOT NULL,
+      npa STRING NOT NULL);`,
+      `INSERT INTO packages
+      (package, url, npa)
+     VALUES
+       ('dashboard', 'https://dev.azure.com/P00743-dashboard', 'web')`
+    ];
+    async.eachSeries(queries, (query, cb) =>
+    {
+      db.query(query, err => cb(err));
+    }, err =>
+    {
+      done(err);
+    });
+  });
+  afterAll(done =>
+  {
+    fs.unlink(dbFile, err =>
+    {
+    // We don't care if the file does not exist
+      if (err && err.code !== 'ENOENT')
+      {
+        done(err);
+        return;
+      }
+      done();
+    });
+  });
+
+  afterEach(done =>
+  {
+    db.query('DELETE FROM packages WHERE package <> \'dashboard\'', done);
+  });
+
+  describe('noarch-sqlite3.constructor', () =>
+  {
+    it('properly detects missing sqlite3 executable', () =>
+    {
+      expect(() => new Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
+        .toThrow(/sqlite3 executable .* not found/);
+    });
+    it('properly detects non-existing database directory', done =>
+    {
+      const ndb = new Database('./missing-dir/broken.db3');
+      const query = `CREATE TABLE IF NOT EXISTS packages(
+      package STRING NOT nulL,
+      url STRING NOT NULL,
+      npa STRING NOT NULL);`;
+      ndb.query(query, err =>
+      {
+        expect(err.message).toMatch(/unable to open database/);
+        done();
+      });
+    });
+  });
+  standaloneTests(db);
+  queryTests(db);
 }
 catch (ex)
 {
