@@ -263,4 +263,94 @@ describe('noarch-sqlite3.query', () =>
       });
     });
   });
+  it('properly inserts multiple records in a transaction', done =>
+  {
+    const q = `BEGIN TRANSACTION;
+      INSERT INTO
+        packages (package, url, npa)
+      VALUES
+        (?,?,?),
+        (?,?,?);
+      COMMIT;`;
+    const d = [
+      'dashboard-backend-trans',
+      'https://dev.azure.com/P00743-dashboard-backend',
+      'web',
+      'gmdb-agent-trans',
+      'https://dev.azure.com/P00743-gmdb-agent',
+      'both'
+    ];
+    db.query(q, d, err =>
+    {
+      if (err)
+      {
+        done(err);
+        return;
+      }
+      db.query('SELECT * FROM packages', (err, records) =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        expect(records).toEqual([
+          {
+            package: 'dashboard',
+            url: 'https://dev.azure.com/P00743-dashboard',
+            npa: 'web'
+          },
+          {
+            package: 'dashboard-backend-trans',
+            url: 'https://dev.azure.com/P00743-dashboard-backend',
+            npa: 'web'
+          },
+          {
+            package: 'gmdb-agent-trans',
+            url: 'https://dev.azure.com/P00743-gmdb-agent',
+            npa: 'both'
+          }
+        ]);
+        done();
+      });
+    });
+  });
+  it('properly handles transaction failure', done =>
+  {
+    const q = `BEGIN TRANSACTION;
+      INSERT INTO
+        packages (package, url, badfield)
+      VALUES
+        (?,?,?),
+        (?,?,?);
+      COMMIT;`;
+    const d = [
+      'dashboard-backend-trans',
+      'https://dev.azure.com/P00743-dashboard-backend',
+      'web',
+      'gmdb-agent-trans',
+      'https://dev.azure.com/P00743-gmdb-agent',
+      'both'
+    ];
+    db.query(q, d, err =>
+    {
+      expect(err.message).toMatch(/no column named badfield/);
+      db.query('SELECT * FROM packages', (err, records) =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        expect(records).toEqual([
+          {
+            package: 'dashboard',
+            url: 'https://dev.azure.com/P00743-dashboard',
+            npa: 'web'
+          }
+        ]);
+        done();
+      });
+    });
+  });
 });
