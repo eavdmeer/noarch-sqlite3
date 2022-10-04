@@ -1,5 +1,7 @@
 # noarch-sqlite3
 
+> This should currently be considered untested and experimental! Be warned!
+
 ## Table of Contents
 
 * [Features](#features)
