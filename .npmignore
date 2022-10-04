@@ -1,0 +1,7 @@
+**/*.db
+**/doit*
+**/nono*
+**/lala*
+coverage/
+.github/
+.eslintrc.json
