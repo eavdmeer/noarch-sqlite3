@@ -139,7 +139,7 @@ helper.prototype.runQueries = function(queries, callback)
     }
     catch (ex)
     {
-      callback(new Error(`Failed to run query: ${ex.message} in ${stdout}`));
+      callback(new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`));
     }
   });
 };

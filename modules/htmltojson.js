@@ -24,16 +24,12 @@ function processSet(set)
 
   return values;
 }
-function htmlToJson(html)
+function htmlToJson(html = '')
 {
   if (html === '') { return []; }
 
   // Parse valid incoming data
   const data = parse(html);
-  if (! (data instanceof Array))
-  {
-    throw new Error('Failed to parse sqlite3 HTML!');
-  }
   debug('parsed data:', JSON.stringify(data, null, 2));
 
   // Filter for only data rows
