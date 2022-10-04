@@ -1,5 +1,5 @@
 {
-  "name": "@eavdmeer@noarch-sqlite3",
+  "name": "@eavdmeer/noarch-sqlite3",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
