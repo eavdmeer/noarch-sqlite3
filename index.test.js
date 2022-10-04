@@ -88,7 +88,8 @@ function standaloneTests(db)
 
 function queryTests(db)
 {
-  describe('noarch-sqlite3.query', () =>
+  const msg = `noarch-sqlite3.querry (${db.useJson ? '-json' : '-html'})`;
+  describe(msg, () =>
   {
     it('properly selects the default record', done =>
     {
@@ -361,6 +362,12 @@ try
   });
   standaloneTests(db);
   queryTests(db);
+  // if (db.useJson)
+  // {
+  //   // Repeat the query tests without -json support
+  //   db.useJson = false;
+  //   queryTests(db);
+  // }
 }
 catch (ex)
 {
