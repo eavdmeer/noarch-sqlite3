@@ -9,6 +9,12 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "jest": {
+    "verbose": true,
+    "collectCoverage": true,
+    "modulePathIgnorePatterns": [],
+    "testMatch": [ "**/*.test.js" ]
+  },
   "devDependencies": {
     "jest": "^29.1.2"
   },
