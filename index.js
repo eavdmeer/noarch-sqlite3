@@ -1,7 +1,7 @@
 const { execFile, execFileSync } = require('node:child_process');
 const { htmlToJson } = require('./modules/htmltojson');
 
-const debug = require('debug')('@eavdmeer/noarch-sqlite3');
+const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
 
 const defaultOptions = {
@@ -52,7 +52,7 @@ function helper(dbPath, options = {})
   }
   if (semver.lt(this.versionInfo.version, this.requiredVersion.html))
   {
-    throw new Error(`@eavdmeer/noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion.html}. Found ${this.versionInfo.version}`);
+    throw new Error(`noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion.html}. Found ${this.versionInfo.version}`);
   }
   if (semver.gte(this.versionInfo.version, this.requiredVersion.json))
   {

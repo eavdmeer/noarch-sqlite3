@@ -1,4 +1,4 @@
-# @eavdmeer/noarch-sqlite3
+# noarch-sqlite3
 
 ## Table of Contents
 
@@ -25,13 +25,13 @@ Coming soon...
 [npm][]:
 
 ```sh
-npm install @eavdmeer/noarch-sqlite3
+npm install noarch-sqlite3
 ```
 
 [yarn][]:
 
 ```sh
-yarn add @eavdmeer/noarch-sqlite3
+yarn add noarch-sqlite3
 ```
 
 
@@ -40,7 +40,7 @@ yarn add @eavdmeer/noarch-sqlite3
 ### Node
 
 ```js
-const Database = require('@eavdmeer/noarch-sqlite3');
+const Database = require('noarch-sqlite3');
 
 const db = new Database('./mydb.db3', [ options ]);
 
