@@ -1,4 +1,5 @@
 const { execFile, execFileSync } = require('node:child_process');
+const { htmlToJson } = require('./modules/htmltojson');
 
 const debug = require('debug')('@eavdmeer/noarch-sqlite3');
 const semver = require('semver');
@@ -17,7 +18,15 @@ function helper(dbPath, options = {})
   debug(`new database helper for path ${this.db}`);
   debug(`options are: ${JSON.stringify(this.options, null, 2)}`);
 
-  this.requiredVersion = '3.33.0';
+  this.requiredVersion = {
+    json: '3.33.0',
+    // TODO: figure out what version introduced -html support
+    html: '3.0.0'
+  };
+
+  // Only available for sqlite3 >= 3.33.0
+  this.useJson = false;
+
   this.versionInfo = { version: 'unknown', date: 'unknown', hash: 'unknown' };
 
   // Figure out what version of sqlite3 we have, if any!
@@ -41,9 +50,13 @@ function helper(dbPath, options = {})
   {
     throw new Error(`Invalid sqlite3 version detected: ${this.versionInfo.version}`);
   }
-  if (semver.lt(this.versionInfo.version, this.requiredVersion))
+  if (semver.lt(this.versionInfo.version, this.requiredVersion.html))
   {
-    throw new Error(`@eavdmeer/noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion}. Found ${this.versionInfo.version}`);
+    throw new Error(`@eavdmeer/noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion.html}. Found ${this.versionInfo.version}`);
+  }
+  if (semver.gte(this.versionInfo.version, this.requiredVersion.json))
+  {
+    this.useJson = true;
   }
 
   debug(`detected version: ${JSON.stringify(this.versionInfo, null, 2)}`);
@@ -100,7 +113,11 @@ helper.prototype.runQueries = function(queries, callback)
   }
   list.push(...queries);
 
-  const pars = [ '-json', this.db, list.join(';') ];
+  // Use the correct options, depending on the installed version
+  const pars = this.useJson ?
+    [ '-json', this.db, list.join(';') ] :
+    [ '-html', '-header', this.db, list.join(';') ];
+
   execFile(this.options.sqlite3Path, pars, (err, stdout, stderr) =>
   {
     if (err)
@@ -108,16 +125,21 @@ helper.prototype.runQueries = function(queries, callback)
       callback(new Error(`Failed to run query: ${stderr}`));
       return;
     }
+
     try
     {
-      // Remove the first line. It will contain the output of the PRAGMA
-      // busy_timeout command similar to: [{"timeout":30000}]
-      const answer = stdout.replace(/[^\n]*\n/, '');
-      callback(null, answer ? JSON.parse(answer) : answer);
+      const set = this.useJson ?
+        JSON.parse(`[ ${stdout.replace(/\n/, ',').replace(/,$/, '')} ]`) :
+        htmlToJson(stdout);
+
+      // Remove the first result set. It will contain the output of the
+      // PRAGMA busy_timeout=xxxx.
+      set.shift();
+      callback(null, set.length === 1 ? set.pop() : set);
     }
     catch (ex)
     {
-      callback(new Error(`Failed to run query: ${ex.message} in ${stdout}`));
+      callback(new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`));
     }
   });
 };
