@@ -362,12 +362,12 @@ try
   });
   standaloneTests(db);
   queryTests(db);
-  // if (db.useJson)
-  // {
-  //   // Repeat the query tests without -json support
-  //   db.useJson = false;
-  //   queryTests(db);
-  // }
+  if (db.useJson)
+  {
+    // Repeat the query tests without -json support
+    db.useJson = false;
+    queryTests(db);
+  }
 }
 catch (ex)
 {
