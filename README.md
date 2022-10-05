@@ -14,7 +14,7 @@
 
 ## Requirements
 
-For this module to work, you **need** a version of the `sqlite3` command line tool installed on your system. Many versions will work, however, it is strongly recommended that you install a version above 3.33.0 as this provides native JSON support. Versions below 3.33.0 will use HTML output as an alternative.
+For this module to work, you **need** a version of the `sqlite3` command line tool installed on your system. Many versions will work, however, it is strongly recommended that you install version 3.33.0 or above as this provides native JSON support. Versions below 3.33.0 will use HTML output as an alternative.
 
 > Caveats: if you use an older version, **all columns will be returned as strings by default.** Please look at the `autoConvert` option to change that behavior
 
