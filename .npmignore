@@ -1,7 +1,9 @@
 **/*.db
+**/*.test.js
 **/doit*
-**/nono*
 **/lala*
-coverage/
-.github/
+**/nono*
 .eslintrc.json
+.github/
+coverage/
+__mocks__/
