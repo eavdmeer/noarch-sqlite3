@@ -1,6 +1,31 @@
 /* global describe, it, expect */
 
-const { htmlToJson } = require('./htmltojson');
+const { convert, htmlToJson } = require('./htmltojson');
+
+describe('convert', () =>
+{
+  it('properly converts booleans', () =>
+  {
+    expect(convert('true')).toBe(true);
+    expect(convert('false')).toBe(false);
+    expect(convert('TRUE')).toBe(true);
+    expect(convert('FALSE')).toBe(false);
+  });
+  it('properly converts integers', () =>
+  {
+    expect(convert('1')).toBe(1);
+    expect(convert('1000')).toBe(1000);
+    expect(convert('1000000000000')).toBe(1000000000000);
+  });
+  it('properly converts floats', () =>
+  {
+    expect(convert('1.0')).toBe(1.0);
+    expect(convert('12.34')).toBe(12.34);
+    expect(convert('0.004')).toBe(0.004);
+    expect(convert('4e-4')).toBe(4e-4);
+    expect(convert('4.23e+4')).toBe(4.23e+4);
+  });
+});
 
 describe('htmltojson', () =>
 {
@@ -25,7 +50,8 @@ describe('htmltojson', () =>
   });
   it('properly parses sqlite3 html output', () =>
   {
-    const html = `<TR><TH>package</TH>
+    const html = `<TR>
+      <TH>package</TH>
       <TH>comment</TH>
     </TR>
     <TR>
@@ -94,5 +120,38 @@ with an empty line</TD>
       ]
     ];
     expect(htmlToJson(html)).toEqual(json);
+  });
+  it('properly auto-converts sqlite3 html output values', () =>
+  {
+    const html = `<TR>\
+      <TH>package</TH>
+      <TH>isNew</TH>
+      <TH>installCount</TH>
+    </TR>
+    <TR>
+      <TD>dashboard</TD>
+      <TD>true</TD>
+      <TD>123</TD>
+    </TR>
+    <TR>
+      <TD>dashboard-backend</TD>
+      <TD>false</TD>
+      <TD>10.55</TD>
+    </TR>`;
+    const json = [
+      [
+        {
+          package: 'dashboard',
+          isNew: true,
+          installCount: 123
+        },
+        {
+          package: 'dashboard-backend',
+          isNew: false,
+          installCount: 10.55
+        }
+      ]
+    ];
+    expect(htmlToJson(html, true)).toEqual(json);
   });
 });

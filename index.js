@@ -5,9 +5,10 @@ const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
 
 const defaultOptions = {
-  sqlite3Path: '/usr/bin/sqlite3',
+  autoConvert: false,
   busyTimeout: 30000,
-  enableForeignKeys: true
+  enableForeignKeys: true,
+  sqlite3Path: '/usr/bin/sqlite3'
 };
 
 function helper(dbPath, options = {})
