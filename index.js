@@ -62,6 +62,14 @@ function helper(dbPath, options = {})
 
   debug(`detected version: ${JSON.stringify(this.versionInfo, null, 2)}`);
 }
+helper.prototype.configure = function(name, value)
+{
+  if (! Object.keys(this.options).includes(name))
+  {
+    throw new Error(`Invalid option: ${name}!`);
+  }
+  this.options[name] = value;
+};
 helper.prototype.getVersionInfo = function()
 {
   return this.versionInfo;

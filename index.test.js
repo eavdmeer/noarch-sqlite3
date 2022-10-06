@@ -12,6 +12,19 @@ const dbFile = '/tmp/test.db3';
 
 function standaloneTests(db)
 {
+  describe('noarch-sqlite3.configure', () =>
+  {
+    it('sets known options correctly', () =>
+    {
+      db.configure('busyTimeout', 30001);
+      expect(db.options.busyTimeout).toBe(30001);
+    });
+    it('catches unknown options correctly', () =>
+    {
+      expect(() => db.configure('noSuchOption', 30001))
+        .toThrow(/Invalid option: noSuchOption/);
+    });
+  });
   describe('noarch-sqlite3.safe', () =>
   {
     it('escapes single quotes correctly', () =>
