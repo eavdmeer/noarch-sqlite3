@@ -63,12 +63,16 @@ function standaloneTests(db)
       const d = [ 'dashboard' ];
       expect(db.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
+      expect(db.expandArgs(q, ...d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
     });
     it('properly substitutes multiple values in a querY', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 'both' ];
       expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
+      expect(db.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
     });
     it('properly substitutes mixed type values in a querY', () =>
@@ -78,23 +82,36 @@ function standaloneTests(db)
       expect(db.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=121');
     });
-    it('properly catches invalid types for data', () =>
-    {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = 'dashboard';
-      expect(() => db.expandArgs(q, d)).toThrow(/Invalid type for query data/);
-    });
     it('properly catches missing bind parameter values for a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard' ];
-      expect(() => db.expandArgs(q, d)).toThrow(/Too few .* bind parameter values/);
+      expect(() => db.expandArgs(q, d))
+        .toThrow(/Too few .* bind parameter values/);
+      expect(() => db.expandArgs(q, ...d))
+        .toThrow(/Too few .* bind parameter values/);
     });
     it('properly catches extra bind parameter values for a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 'both', 'too many' ];
-      expect(() => db.expandArgs(q, d)).toThrow(/Too many .* bind parameter values/);
+      expect(() => db.expandArgs(q, d))
+        .toThrow(/Too many .* bind parameter values/);
+      expect(() => db.expandArgs(q, ...d))
+        .toThrow(/Too many .* bind parameter values/);
+    });
+    it('properly catches invalid types for data', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = { bad: 'value' };
+      expect(() => db.expandArgs(q, d)).toThrow(/Invalid type for query data/);
+    });
+  });
+  describe('noarch-sqlite3.close', () =>
+  {
+    it('properly does callback on close', done =>
+    {
+      db.close(done);
     });
   });
 }
@@ -227,7 +244,7 @@ function queryTests(db)
         'https://dev.azure.com/P00743-gmdb-agent',
         'both'
       ];
-      db.run(q, d, err =>
+      db.run(q, ...d, err =>
       {
         if (err)
         {

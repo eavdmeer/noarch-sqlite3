@@ -84,8 +84,20 @@ helper.prototype.quote = function(data)
   debug(`quote ${JSON.stringify(data)}`);
   return typeof data === 'string' ? `'${data}'` : data;
 };
-helper.prototype.expandArgs = function(query, data)
+helper.prototype.expandArgs = function(...args)
 {
+  // First argument is the query
+  const query = args.shift();
+
+  // Second argument may be an array with all values or just the first of
+  // the parameter values
+  const data = [ 'undefined', 'object' ].includes(typeof args[0]) ?
+    args[0] : args;
+
+  if (! (args[0] instanceof Array) && typeof args[0] === 'object')
+  {
+    console.log(`expanding ${query}/${JSON.stringify(data)}`);
+  }
   debug(`expanding ${query}/${JSON.stringify(data)}`);
   if (! data || data.length === 0) { return query; }
   if (! (data instanceof Array))
@@ -208,9 +220,11 @@ helper.prototype.each = function(...args)
   });
 };
 helper.prototype.exec = helper.prototype.run;
-helper.prototype.close = function()
+helper.prototype.close = function(callback)
 {
   debug('fake close');
+  if (callback) { callback(null); }
+
   return true;
 };
 
