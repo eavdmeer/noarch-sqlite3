@@ -262,6 +262,47 @@ function queryTests(db)
         });
       });
     });
+    it('properly runs calls the handler for each record', done =>
+    {
+      const q = `INSERT INTO
+        packages (package, url, npa)
+      VALUES
+        (?,?,?),
+        (?,?,?)`;
+      const d = [
+        'dashboard-backend',
+        'https://dev.azure.com/P00743-dashboard-backend',
+        'web',
+        'gmdb-agent',
+        'https://dev.azure.com/P00743-gmdb-agent',
+        'both'
+      ];
+      db.run(q, d, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        const each = jest.fn();
+        db.each('SELECT * FROM packages', each, (err, count) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(count).toBe(3);
+          expect(each).toBeCalledTimes(3);
+          expect(each).lastCalledWith(null, {
+            package: 'gmdb-agent',
+            url: 'https://dev.azure.com/P00743-gmdb-agent',
+            npa: 'both'
+          });
+          done();
+        });
+      });
+    });
     it('properly inserts multiple records in a transaction', done =>
     {
       const q = `BEGIN TRANSACTION;

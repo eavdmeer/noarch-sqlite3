@@ -194,6 +194,19 @@ helper.prototype.run = function(...args)
 
   return this;
 };
+helper.prototype.each = function(...args)
+{
+  // We may have a completion callback
+  const complete = typeof args[args.length - 2] === 'function' ?
+    args.pop() : undefined;
+  const callback = args.pop();
+
+  this.all(...args, (err, rows) =>
+  {
+    rows.forEach(row => callback(err, row));
+    if (complete) { complete(err, rows.length); }
+  });
+};
 helper.prototype.exec = helper.prototype.run;
 helper.prototype.close = function()
 {
