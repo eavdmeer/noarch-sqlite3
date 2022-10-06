@@ -112,7 +112,7 @@ helper.prototype.expandArgs = function(query, data)
 
   return result;
 };
-helper.prototype.runQueries = function(queries, callback)
+helper.prototype.runQueries = function(queries, returnResult, callback)
 {
   // Add the required PRAGMA commands
   const list = [ `PRAGMA busy_timeout=${this.options.busyTimeout}` ];
@@ -135,6 +135,13 @@ helper.prototype.runQueries = function(queries, callback)
       return;
     }
 
+    // Early out for run/exec
+    if (! returnResult)
+    {
+      callback(null);
+      return;
+    }
+
     try
     {
       const set = this.useJson ?
@@ -152,13 +159,46 @@ helper.prototype.runQueries = function(queries, callback)
     }
   });
 };
-helper.prototype.query = function(...args)
+helper.prototype.all = function(...args)
 {
   const callback = args.pop();
   const query = this.expandArgs(...args);
   debug(`running query: ${query}`);
 
-  this.runQueries([ query ], callback);
+  this.runQueries([ query ], true, callback);
+  return this;
+};
+helper.prototype.get = function(...args)
+{
+  const callback = args.pop();
+  const query = this.expandArgs(...args);
+  debug(`running get: ${query}`);
+
+  this.runQueries([ query ], true, (err, records) =>
+  {
+    callback(err, records ? records.pop() : records);
+  });
+
+  return this;
+};
+helper.prototype.run = function(...args)
+{
+  const callback = args.pop();
+  const query = this.expandArgs(...args);
+  debug(`running: ${query}`);
+
+  this.runQueries([ query ], false, (err, records) =>
+  {
+    callback(err, records ? records.pop() : records);
+  });
+
+  return this;
+};
+helper.prototype.exec = helper.prototype.run;
+helper.prototype.close = function()
+{
+  debug('fake close');
+  return true;
 };
 
 module.exports = helper;

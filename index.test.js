@@ -104,11 +104,11 @@ function queryTests(db)
   const msg = `noarch-sqlite3.querry (${db.useJson ? '-json' : '-html'})`;
   describe(msg, () =>
   {
-    it('properly selects the default record', done =>
+    it('properly selects the default record with query()', done =>
     {
       const q = 'SELECT * FROM packages WHERE package=?';
       const d = [ 'dashboard' ];
-      db.query(q, d, (err, records) =>
+      db.all(q, d, (err, records) =>
       {
         if (err)
         {
@@ -125,11 +125,30 @@ function queryTests(db)
         done();
       });
     });
+    it('properly selects the default record with get()', done =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=?';
+      const d = [ 'dashboard' ];
+      db.get(q, d, (err, records) =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        expect(records).toEqual({
+          package: 'dashboard',
+          url: 'https://dev.azure.com/P00743-dashboard',
+          npa: 'web'
+        });
+        done();
+      });
+    });
     it('properly runs multiple semicolon-separated queries', done =>
     {
       const q = 'SELECT * FROM packages WHERE package=?; SELECT * FROM packages WHERE package=?';
       const d = [ 'dashboard', 'dashboard' ];
-      db.query(q, d, (err, records) =>
+      db.all(q, d, (err, records) =>
       {
         if (err)
         {
@@ -163,14 +182,14 @@ function queryTests(db)
         'https://dev.azure.com/P00743-dashboard-backend',
         'web'
       ];
-      db.query(q, d, err =>
+      db.run(q, d, err =>
       {
         if (err)
         {
           done(err);
           return;
         }
-        db.query('SELECT * FROM packages', (err, records) =>
+        db.all('SELECT * FROM packages', (err, records) =>
         {
           if (err)
           {
@@ -208,14 +227,14 @@ function queryTests(db)
         'https://dev.azure.com/P00743-gmdb-agent',
         'both'
       ];
-      db.query(q, d, err =>
+      db.run(q, d, err =>
       {
         if (err)
         {
           done(err);
           return;
         }
-        db.query('SELECT * FROM packages', (err, records) =>
+        db.all('SELECT * FROM packages', (err, records) =>
         {
           if (err)
           {
@@ -260,14 +279,14 @@ function queryTests(db)
         'https://dev.azure.com/P00743-gmdb-agent',
         'both'
       ];
-      db.query(q, d, err =>
+      db.run(q, d, err =>
       {
         if (err)
         {
           done(err);
           return;
         }
-        db.query('SELECT * FROM packages', (err, records) =>
+        db.all('SELECT * FROM packages', (err, records) =>
         {
           if (err)
           {
@@ -312,10 +331,10 @@ function queryTests(db)
         'https://dev.azure.com/P00743-gmdb-agent',
         'both'
       ];
-      db.query(q, d, err =>
+      db.run(q, d, err =>
       {
         expect(err.message).toMatch(/no column named badfield/);
-        db.query('SELECT * FROM packages', (err, records) =>
+        db.all('SELECT * FROM packages', (err, records) =>
         {
           if (err)
           {
@@ -356,7 +375,7 @@ try
     ];
     async.eachSeries(queries, (query, cb) =>
     {
-      db.query(query, err => cb(err));
+      db.run(query, err => cb(err));
     }, err =>
     {
       done(err);
@@ -379,7 +398,7 @@ try
   afterEach(done =>
   {
     jest.clearAllMocks();
-    db.query('DELETE FROM packages WHERE package <> \'dashboard\'', done);
+    db.run('DELETE FROM packages WHERE package <> \'dashboard\'', done);
   });
 
   describe('noarch-sqlite3.constructor', () =>
@@ -396,7 +415,7 @@ try
       package STRING NOT nulL,
       url STRING NOT NULL,
       npa STRING NOT NULL);`;
-      ndb.query(query, err =>
+      ndb.run(query, err =>
       {
         expect(err.message).toMatch(/unable to open database/);
         done();
