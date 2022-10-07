@@ -1,0 +1,4 @@
+---
+rule:
+  truthy:
+    allowed-values: [ 'true', 'false', 'on', 'off' ]
