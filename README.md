@@ -53,7 +53,7 @@ const Database = require('noarch-sqlite3');
 
 const db = new Database('./mydb.db3', [ options ]);
 
-db.query('SELECT * FROM table', (err, records) =>
+db.all('SELECT * FROM table', (err, records) =>
 {
   if (err)
   {
@@ -61,7 +61,7 @@ db.query('SELECT * FROM table', (err, records) =>
     return;
   }
   console.log(records);
-})
+});
 ```
 
 #### Options
