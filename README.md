@@ -83,7 +83,7 @@ Options can be one of the following:
 
 ## Changelog
 
-Please check the extended [changelog](CHANGLOG.md)
+Please check the extended [changelog](CHANGELOG.md)
 
 ##
 

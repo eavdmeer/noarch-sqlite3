@@ -2,14 +2,14 @@
 
 ## v1.4.0 (breaking changes!)
 - Make contructor compatible wiwh standard [sqlite3](https://www.npmjs.com/package/sqlite3) modules
-- No longer suppport `query()` function. Use `each()`
+- No longer suppport `query()` function. Use `all()` instead
 
 ## v1.3.1
 - Allow passing bind parameters directly in the arguments
 
 ## v1.3.0
-- Implement 'all()', 'get()', 'run()', 'exec()' and 'close()' standard [sqlite3](https://www.npmjs.com/package/sqlite3) functions
-- Implement sqlite3 'each()' function
+- Implement `all()`, `get()`, `run()`, `exec()` and `close()` standard [sqlite3](https://www.npmjs.com/package/sqlite3) functions
+- Implement sqlite3 `each()` function
 
 ## v1.2.0
 - Add auto-conversion of int/float/bool values for HTML output
