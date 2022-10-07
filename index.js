@@ -1,13 +1,14 @@
 const { execFile, execFileSync } = require('node:child_process');
 const { htmlToJson } = require('./modules/htmltojson');
 
-const debug = require('debug')('@eavdmeer/noarch-sqlite3');
+const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
 
 const defaultOptions = {
-  sqlite3Path: '/usr/bin/sqlite3',
+  autoConvert: false,
   busyTimeout: 30000,
-  enableForeignKeys: true
+  enableForeignKeys: true,
+  sqlite3Path: '/usr/bin/sqlite3'
 };
 
 function helper(dbPath, options = {})
@@ -52,7 +53,7 @@ function helper(dbPath, options = {})
   }
   if (semver.lt(this.versionInfo.version, this.requiredVersion.html))
   {
-    throw new Error(`@eavdmeer/noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion.html}. Found ${this.versionInfo.version}`);
+    throw new Error(`noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion.html}. Found ${this.versionInfo.version}`);
   }
   if (semver.gte(this.versionInfo.version, this.requiredVersion.json))
   {
@@ -61,6 +62,14 @@ function helper(dbPath, options = {})
 
   debug(`detected version: ${JSON.stringify(this.versionInfo, null, 2)}`);
 }
+helper.prototype.configure = function(name, value)
+{
+  if (! Object.keys(this.options).includes(name))
+  {
+    throw new Error(`Invalid option: ${name}!`);
+  }
+  this.options[name] = value;
+};
 helper.prototype.getVersionInfo = function()
 {
   return this.versionInfo;
@@ -75,8 +84,16 @@ helper.prototype.quote = function(data)
   debug(`quote ${JSON.stringify(data)}`);
   return typeof data === 'string' ? `'${data}'` : data;
 };
-helper.prototype.expandArgs = function(query, data)
+helper.prototype.expandArgs = function(...args)
 {
+  // First argument is the query
+  const query = args.shift();
+
+  // Second argument may be an array with all values or just the first of
+  // the parameter values
+  const data = [ 'undefined', 'object' ].includes(typeof args[0]) ?
+    args[0] : args;
+
   debug(`expanding ${query}/${JSON.stringify(data)}`);
   if (! data || data.length === 0) { return query; }
   if (! (data instanceof Array))
@@ -103,7 +120,7 @@ helper.prototype.expandArgs = function(query, data)
 
   return result;
 };
-helper.prototype.runQueries = function(queries, callback)
+helper.prototype.runQueries = function(queries, returnResult, callback)
 {
   // Add the required PRAGMA commands
   const list = [ `PRAGMA busy_timeout=${this.options.busyTimeout}` ];
@@ -126,6 +143,13 @@ helper.prototype.runQueries = function(queries, callback)
       return;
     }
 
+    // Early out for run/exec
+    if (! returnResult)
+    {
+      callback(null);
+      return;
+    }
+
     try
     {
       const set = this.useJson ?
@@ -143,13 +167,61 @@ helper.prototype.runQueries = function(queries, callback)
     }
   });
 };
-helper.prototype.query = function(...args)
+helper.prototype.all = function(...args)
 {
   const callback = args.pop();
   const query = this.expandArgs(...args);
   debug(`running query: ${query}`);
 
-  this.runQueries([ query ], callback);
+  this.runQueries([ query ], true, callback);
+  return this;
+};
+helper.prototype.get = function(...args)
+{
+  const callback = args.pop();
+  const query = this.expandArgs(...args);
+  debug(`running get: ${query}`);
+
+  this.runQueries([ query ], true, (err, records) =>
+  {
+    callback(err, records ? records.pop() : records);
+  });
+
+  return this;
+};
+helper.prototype.run = function(...args)
+{
+  const callback = args.pop();
+  const query = this.expandArgs(...args);
+  debug(`running: ${query}`);
+
+  this.runQueries([ query ], false, (err, records) =>
+  {
+    callback(err, records ? records.pop() : records);
+  });
+
+  return this;
+};
+helper.prototype.each = function(...args)
+{
+  // We may have a completion callback
+  const complete = typeof args[args.length - 2] === 'function' ?
+    args.pop() : undefined;
+  const callback = args.pop();
+
+  this.all(...args, (err, rows) =>
+  {
+    rows.forEach(row => callback(err, row));
+    if (complete) { complete(err, rows.length); }
+  });
+};
+helper.prototype.exec = helper.prototype.run;
+helper.prototype.close = function(callback)
+{
+  debug('fake close');
+  if (callback) { callback(null); }
+
+  return true;
 };
 
-module.exports = helper;
+module.exports = { Database: helper };

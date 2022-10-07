@@ -1,6 +1,6 @@
 {
-  "name": "@eavdmeer/noarch-sqlite3",
-  "version": "1.1.0",
+  "name": "noarch-sqlite3",
+  "version": "1.4.1",
   "description": "",
   "main": "index.js",
   "scripts": {

@@ -1,7 +1,27 @@
 const debug = require('debug')('htmltojson');
 const { parse } = require('himalaya');
 
-function processSet(set)
+function convert(val)
+{
+  if (/^true$/i.test(val))
+  {
+    return true;
+  }
+  if (/^false$/i.test(val))
+  {
+    return false;
+  }
+  if (/^\d+$/i.test(val))
+  {
+    return parseInt(val, 10);
+  }
+  if (/^(\d+\.\d+|\d+e[+-]\d+|\d+\.\d+e[+-]\d+)$/i.test(val))
+  {
+    return parseFloat(val);
+  }
+  return val;
+}
+function processSet(set, autoConvert)
 {
   // Extract the header, if any
   const hdr = set.shift();
@@ -16,7 +36,7 @@ function processSet(set)
       .map(w => w.children.pop().content)
       .reduce((a, w, i) =>
       {
-        a[fields[i]] = w;
+        a[fields[i]] = autoConvert ? convert(w) : w;
         return a;
       }, {})
     );
@@ -24,7 +44,7 @@ function processSet(set)
 
   return values;
 }
-function htmlToJson(html = '')
+function htmlToJson(html = '', autoConvert = false)
 {
   if (html === '') { return []; }
 
@@ -53,9 +73,9 @@ function htmlToJson(html = '')
   const set = [];
   headerRows.reverse().forEach(v => set.unshift(rows.splice(v)));
 
-  const values = set.map(v => processSet(v));
+  const values = set.map(v => processSet(v, autoConvert));
 
   return values;
 }
 
-module.exports = { htmlToJson };
+module.exports = { htmlToJson, convert };
