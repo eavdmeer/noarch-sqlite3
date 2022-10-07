@@ -10,6 +10,7 @@
 * [Usage](#usage)
   * [Node](#node)
 * [License](#license)
+* [Changelog](#changelog)
 
 
 ## Requirements
@@ -80,6 +81,9 @@ Options can be one of the following:
 
 [MIT](LICENSE)
 
+## Changelog
+
+Please check the extended [changelog](CHANGLOG.md)
 
 ##
 
