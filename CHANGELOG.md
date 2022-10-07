@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.5.0
+- Expose the `Database#runQeueries` function
+- Have `Database#runQueries` behave like the `Database#run` function
+- Make all callbacks optional
+- Have `Database` inherit from `EventEmitter` so it can emit an `error` event.
+- Document everything
+
 ## v1.4.3
 - Minor documentation update
 
