@@ -19,12 +19,12 @@ For this module to work, you **need** a version of the `sqlite3` command line to
 
 > Caveat: if you use an older version, **all columns will be returned as strings by default.** Please look at the `autoConvert` [option](#options) to change that behavior
 
-> Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
-
 
 ## Features
 
-This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely elaviate binary dependencies such as for the [sqlite3] and [better-sqlite](https://www.npmjs.com/package/better-sqlite3) modules.
+This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely elaviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
+
+> Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
 
 
 ## Install
@@ -171,4 +171,5 @@ Please check the extended [changelog](CHANGELOG.md) (only on github)
 
 [npm]: https://www.npmjs.com/
 [sqlite3]: https://www.npmjs.com/package/sqlite3
+[better-sqlite]: https://www.npmjs.com/package/better-sqlite3
 [yarn]: https://yarnpkg.com/
