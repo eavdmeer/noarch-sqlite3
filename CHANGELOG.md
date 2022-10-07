@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.1
+- Major documentation update
+- Remove some debug code left behind
+
 ## v1.4.0 (breaking changes!)
 - Make contructor compatible wiwh standard [sqlite3](https://www.npmjs.com/package/sqlite3) modules
 - No longer suppport `query()` function. Use `all()` instead
