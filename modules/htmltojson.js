@@ -33,7 +33,7 @@ function processSet(set, autoConvert)
   const values = set
     .map(v => v.children
       .filter(w => w.type === 'element' && w.tagName === 'td')
-      .map(w => w.children.pop().content)
+      .map(w => w.children.length > 0 ? w.children.pop().content : '')
       .reduce((a, w, i) =>
       {
         a[fields[i]] = autoConvert ? convert(w) : w;
