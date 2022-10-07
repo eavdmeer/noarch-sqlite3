@@ -410,6 +410,23 @@ function queryTests(db)
         });
       });
     });
+    it('properly handles query errors with callback', done =>
+    {
+      const q = 'SELECT * FROM no_such_table';
+      db.all(q, (err, rows) =>
+      {
+        expect(err).toBeTruthy();
+        expect(err.message).toMatch(/no such table: no_such_table/);
+        expect(rows).toBeUndefined();
+        done();
+      });
+    });
+    it('properly handles query errors without callback', () =>
+    {
+      const q = 'SELECT * FROM no_such_table';
+      db.on('error', err => expect(err.message).toMatch(/no such table/));
+      db.all(q);
+    });
   });
 }
 

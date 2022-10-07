@@ -1,5 +1,7 @@
+const EventEmitter = require('events').EventEmitter;
 const { execFile, execFileSync } = require('node:child_process');
 const { htmlToJson } = require('./modules/htmltojson');
+const util = require('util');
 
 const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
@@ -11,7 +13,7 @@ const defaultOptions = {
   sqlite3Path: '/usr/bin/sqlite3'
 };
 
-function helper(dbPath, options = {})
+function Helper(dbPath, options = {})
 {
   this.db = dbPath;
   this.options = { ...defaultOptions, ...options };
@@ -62,7 +64,7 @@ function helper(dbPath, options = {})
 
   debug(`detected version: ${JSON.stringify(this.versionInfo, null, 2)}`);
 }
-helper.prototype.configure = function(name, value)
+Helper.prototype.configure = function(name, value)
 {
   if (! Object.keys(this.options).includes(name))
   {
@@ -70,21 +72,21 @@ helper.prototype.configure = function(name, value)
   }
   this.options[name] = value;
 };
-helper.prototype.getVersionInfo = function()
+Helper.prototype.getVersionInfo = function()
 {
   return this.versionInfo;
 };
-helper.prototype.safe = function(data)
+Helper.prototype.safe = function(data)
 {
   debug(`sanitize ${JSON.stringify(data)}`);
   return typeof data === 'string' ? data.replace(/'/g, '\'\'') : data;
 };
-helper.prototype.quote = function(data)
+Helper.prototype.quote = function(data)
 {
   debug(`quote ${JSON.stringify(data)}`);
   return typeof data === 'string' ? `'${data}'` : data;
 };
-helper.prototype.expandArgs = function(...args)
+Helper.prototype.expandArgs = function(...args)
 {
   // First argument is the query
   const query = args.shift();
@@ -120,7 +122,7 @@ helper.prototype.expandArgs = function(...args)
 
   return result;
 };
-helper.prototype.runQueries = function(queries, returnResult, callback)
+Helper.prototype.runQueries = function(queries, returnResult, callback)
 {
   // Add the required PRAGMA commands
   const list = [ `PRAGMA busy_timeout=${this.options.busyTimeout}` ];
@@ -128,7 +130,7 @@ helper.prototype.runQueries = function(queries, returnResult, callback)
   {
     list.push('PRAGMA foreign_keys=ON');
   }
-  list.push(...queries);
+  list.push(...queries.map(args => this.expandArgs(...args)));
 
   // Use the correct options, depending on the installed version
   const pars = this.useJson ?
@@ -167,42 +169,39 @@ helper.prototype.runQueries = function(queries, returnResult, callback)
     }
   });
 };
-helper.prototype.all = function(...args)
+Helper.prototype.all = function(...args)
 {
-  const callback = args.pop();
-  const query = this.expandArgs(...args);
-  debug(`running query: ${query}`);
+  const callback = typeof args[args.length - 1] === 'function' ?
+    args.pop() : err => this.emit('error', err);
 
-  this.runQueries([ query ], true, callback);
+  this.runQueries([ [ ...args ] ], true, callback);
   return this;
 };
-helper.prototype.get = function(...args)
+Helper.prototype.get = function(...args)
 {
-  const callback = args.pop();
-  const query = this.expandArgs(...args);
-  debug(`running get: ${query}`);
+  const callback = typeof args[args.length - 1] === 'function' ?
+    args.pop() : err => this.emit('error', err);
 
-  this.runQueries([ query ], true, (err, records) =>
+  this.runQueries([ [ ...args ] ], true, (err, records) =>
   {
     callback(err, records ? records.pop() : records);
   });
 
   return this;
 };
-helper.prototype.run = function(...args)
+Helper.prototype.run = function(...args)
 {
-  const callback = args.pop();
-  const query = this.expandArgs(...args);
-  debug(`running: ${query}`);
+  const callback = typeof args[args.length - 1] === 'function' ?
+    args.pop() : err => this.emit('error', err);
 
-  this.runQueries([ query ], false, (err, records) =>
+  this.runQueries([ [ ...args ] ], false, (err, records) =>
   {
     callback(err, records ? records.pop() : records);
   });
 
   return this;
 };
-helper.prototype.each = function(...args)
+Helper.prototype.each = function(...args)
 {
   // We may have a completion callback
   const complete = typeof args[args.length - 2] === 'function' ?
@@ -215,8 +214,8 @@ helper.prototype.each = function(...args)
     if (complete) { complete(err, rows.length); }
   });
 };
-helper.prototype.exec = helper.prototype.run;
-helper.prototype.close = function(callback)
+Helper.prototype.exec = Helper.prototype.run;
+Helper.prototype.close = function(callback)
 {
   debug('fake close');
   if (callback) { callback(null); }
@@ -224,4 +223,6 @@ helper.prototype.close = function(callback)
   return true;
 };
 
-module.exports = { Database: helper };
+util.inherits(Helper, EventEmitter);
+
+module.exports = { Database: Helper };
