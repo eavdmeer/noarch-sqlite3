@@ -80,19 +80,23 @@ May throw:
 * invalid (non semver) sqlite3 version detected
 * more recent version of sqlite3 required
 
-#### Database
+
+#### Database object:
+
 
 #### close([callback])
 Fake close that is only there to provide drop-in compatibility with [sqlite3]
 
 * `callback` (optional): called immediately with `null`
 
+
 #### configure(option, value)
 Set a configuration [option](#options) for the database.
 
-#### run(sql [, param, ...], callback)
 
-Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the Database object to allow for function chaining. On completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument.
+#### run(sql [, param, ...] [, callback])
+
+Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the Database object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
 
 * `sql`: The SQL query to run.
 
@@ -112,7 +116,8 @@ In case you want to keep the callback as the 3rd parameter, you should set `para
 
 > You can use either an array or pass each parameter as an argument. Do **not** mix those!
 
-* `callback(err)`: Will be called if an `Error` object if any error occurs during execution.
+* `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
+
 
 #### all(sql [, param, ...] [, callback])
 Run the SQL query with the specified parameters and call the `callback` with all result rows afterwards. Will return the Database object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
@@ -120,6 +125,7 @@ Run the SQL query with the specified parameters and call the `callback` with all
 The signature of the callback is: `function(err, rows) {}`. `rows` is an array. If the result set is empty, it will be an empty array, otherwise it will have an object for each result row which in turn contains the values of that row, like the [Database#get](#get) function.
 
 > All result rows are retrieved first and stored in memory!
+
 
 #### each(sql [, param, ...] [, callback] [, complete])
 Run the SQL query with the specified parameters and call the callback once for each result row. Will return the Database object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
@@ -133,10 +139,29 @@ After all row callbacks were called, the `completion` callback will be called if
 #### exec(sql [, callback])
 This is an alias for [Database#run](#run)
 
-#### get(sql [, param, ...], callback)
+
+#### get(sql [, param, ...][, callback])
 Run the SQL query with the specified parameters and call the callback with a subsequent result row. Will return the Database object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of `callback` is: `function(err, row) {}`. If the result set is empty, the `row` parameter is undefined, otherwise it is an object containing the values for the first row.
+
+
+#### runQueries(queries [, callback])
+
+Run multiple queries in succession. Will return the Database object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
+
+* `queries`: The SQL queries to run. This is an array of sets of arguments like you would pass to [Database#run](#run):
+
+```js
+db.runQueries(
+  [ 'INSERT INTO table (name) VALUES (?)', 'one' ],
+  [ 'INSERT INTO table (name) VALUES (?)', 'two' ],
+  err => console.log(err));
+)
+```
+
+* `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
+
 
 #### Options
 
