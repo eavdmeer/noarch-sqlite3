@@ -94,10 +94,6 @@ helper.prototype.expandArgs = function(...args)
   const data = [ 'undefined', 'object' ].includes(typeof args[0]) ?
     args[0] : args;
 
-  if (! (args[0] instanceof Array) && typeof args[0] === 'object')
-  {
-    console.log(`expanding ${query}/${JSON.stringify(data)}`);
-  }
   debug(`expanding ${query}/${JSON.stringify(data)}`);
   if (! data || data.length === 0) { return query; }
   if (! (data instanceof Array))
