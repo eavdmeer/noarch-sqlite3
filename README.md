@@ -66,7 +66,7 @@ db.all('SELECT * FROM table', (err, records) =>
 
 ### API usage
 
-The API is mostly identical to that of the [sqlite3] and its [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
+The API is mostly identical to that of the [sqlite3] package and its [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
 
 #### new sqlite3.Database(filename [, options])
 Return a new Database object. This will use the executable set by the ${sqlite3Path} option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
