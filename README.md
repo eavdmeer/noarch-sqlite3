@@ -153,9 +153,10 @@ Run multiple queries in succession. Will return the Database object to allow for
 * `queries`: The SQL queries to run. This is an array of sets of arguments like you would pass to [Database#run](#run):
 
 ```js
-db.runQueries(
-  [ 'INSERT INTO table (name) VALUES (?)', 'one' ],
-  [ 'INSERT INTO table (name) VALUES (?)', 'two' ],
+db.runQueries([
+    [ 'INSERT INTO table (name) VALUES (?)', 'one' ],
+    [ 'INSERT INTO table (name) VALUES (?)', 'two' ],
+  ],
   err => console.log(err));
 )
 ```
