@@ -121,6 +121,58 @@ with an empty line</TD>
     ];
     expect(htmlToJson(html)).toEqual(json);
   });
+  it('properly parses sqlite3 html output with empty values', () =>
+  {
+    const html = `
+      <TR>
+        <TH>applicationId</TH>
+        <TH>connectionId</TH>
+        <TH>environmentId</TH>
+        <TH>application</TH>
+        <TH>environment</TH>
+        <TH>connection</TH>
+        <TH>ctype</TH>
+        <TH>direction</TH>
+        <TH>status</TH>
+        <TH>notes</TH>
+        <TH>name</TH>
+        <TH>value</TH>
+      </TR>
+      <TR>
+        <TD>3</TD>
+        <TD>3</TD>
+        <TD>1</TD>
+        <TD>Summit</TD>
+        <TD>test</TD>
+        <TD>SUMMIT-T</TD>
+        <TD>XFB</TD>
+        <TD>out</TD>
+        <TD>inactive</TD>
+        <TD>No notes.</TD>
+        <TD></TD>
+        <TD></TD>
+      </TR>`;
+    const json = [
+      [
+        {
+          applicationId: 3,
+          connectionId: 3,
+          environmentId: 1,
+          application: 'Summit',
+          environment: 'test',
+          connection: 'SUMMIT-T',
+          ctype: 'XFB',
+          direction: 'out',
+          status: 'inactive',
+          notes: 'No notes.',
+          name: '',
+          value: ''
+        }
+      ]
+    ];
+
+    expect(htmlToJson(html, true)).toEqual(json);
+  });
   it('properly auto-converts sqlite3 html output values', () =>
   {
     const html = `<TR>\
