@@ -228,4 +228,4 @@ helper.prototype.close = function(callback)
   return true;
 };
 
-module.exports = helper;
+module.exports = { Database: helper };

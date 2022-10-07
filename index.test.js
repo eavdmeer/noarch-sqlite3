@@ -3,7 +3,7 @@ const cp = require('node:child_process');
 const fs = require('fs');
 const async = require('async');
 
-const Database = require('./');
+const sqlite3 = require('./');
 
 // Need to mock execFileSync and execFile
 jest.mock('node:child_process');
@@ -417,7 +417,7 @@ function queryTests(db)
 // new for -json to work
 try
 {
-  const db = new Database(dbFile);
+  const db = new sqlite3.Database(dbFile);
 
   beforeAll(done =>
   {
@@ -463,12 +463,12 @@ try
   {
     it('properly detects missing sqlite3 executable', () =>
     {
-      expect(() => new Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
+      expect(() => new sqlite3.Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
         .toThrow(/sqlite3 executable .* not found/);
     });
     it('properly detects non-existing database directory', done =>
     {
-      const ndb = new Database('./missing-dir/broken.db3');
+      const ndb = new sqlite3.Database('./missing-dir/broken.db3');
       const query = `CREATE TABLE IF NOT EXISTS packages(
       package STRING NOT nulL,
       url STRING NOT NULL,
@@ -514,11 +514,11 @@ catch (ex)
   {
     it('properly detects unsupported sqlite3 versions', () =>
     {
-      expect(() => new Database('/tmp/broken.db3'))
+      expect(() => new sqlite3.Database('/tmp/broken.db3'))
         .toThrow(/requires at least sqlite3/);
     });
   });
 
-  const db = new Database(dbFile);
+  const db = new sqlite3.Database(dbFile);
   standaloneTests(db);
 }

@@ -49,9 +49,9 @@ yarn add noarch-sqlite3
 ### Node
 
 ```js
-const Database = require('noarch-sqlite3');
+const sqlite3 = require('noarch-sqlite3');
 
-const db = new Database('./mydb.db3', [ options ]);
+const db = new sqlite3.Database('./mydb.db3', [ options ]);
 
 db.all('SELECT * FROM table', (err, records) =>
 {
