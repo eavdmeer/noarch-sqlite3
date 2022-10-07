@@ -128,6 +128,8 @@ The signature of the callback is: `function(err, row) {}`. If the result set suc
 
 After all row callbacks were called, the `completion` callback will be called if present. The first argument is an error object, and the second argument is the number of retrieved rows. If you specify only one function, it will be treated as row callback, if you specify two, the first (== second to last) function will be the row callback, the last function will be the completion callback.
 
+> This function (currently) loads all rows in memory first!
+
 #### exec(sql [, callback])
 This is an alias for [Database#run](#run)
 
@@ -168,5 +170,5 @@ Please check the extended [changelog](CHANGELOG.md)
 ##
 
 [npm]: https://www.npmjs.com/
-[sqlite3]: https://github.com/TryGhost/node-sqlite3/wiki/API
+[sqlite3]: https://www.npmjs.com/package/sqlite3
 [yarn]: https://yarnpkg.com/
