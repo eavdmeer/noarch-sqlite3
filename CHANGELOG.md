@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.3
+- Minor documentation update
+
+## v1.4.2
+- Fix bug #4: empty `<TD>` break HTML parsing
+
 ## v1.4.1
 - Major documentation update
 - Remove some debug code left behind

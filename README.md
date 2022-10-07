@@ -17,12 +17,14 @@
 
 For this module to work, you **need** a version of the `sqlite3` command line tool installed on your system. Many versions will work, however, it is strongly recommended that you install version 3.33.0 or above as this provides native JSON support. Versions below 3.33.0 will use HTML output as an alternative.
 
-> Caveats: if you use an older version, **all columns will be returned as strings by default.** Please look at the `autoConvert` [option](#options) to change that behavior
+> Caveat: if you use an older version, **all columns will be returned as strings by default.** Please look at the `autoConvert` [option](#options) to change that behavior
 
 
 ## Features
 
-This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely elaviate binary dependencies such as for the [sqlite3] and [better-sqlite](https://www.npmjs.com/package/better-sqlite3) modules.
+This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely elaviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
+
+> Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
 
 
 ## Install
@@ -64,13 +66,19 @@ db.all('SELECT * FROM table', (err, records) =>
 
 ### API usage
 
-The API is mostly identical to that of the [sqlite3] [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
+The API is mostly identical to that of the [sqlite3] package and its [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
 
 #### new sqlite3.Database(filename [, options])
-Return a new Database object and automatically opens the database. There is no separate method to open the database.
+Return a new Database object. This will use the executable set by the ${sqlite3Path} option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
 
 * `filename`: The name of your new or already existing sqlite3 database
 * `options` (optional) Object containing valid [option](#options) properties.
+
+May throw:
+* sqlite3 executable not found
+* unable to determine sqlite3 version
+* invalid (non semver) sqlite3 version detected
+* more recent version of sqlite3 required
 
 #### Database
 
@@ -120,6 +128,8 @@ The signature of the callback is: `function(err, row) {}`. If the result set suc
 
 After all row callbacks were called, the `completion` callback will be called if present. The first argument is an error object, and the second argument is the number of retrieved rows. If you specify only one function, it will be treated as row callback, if you specify two, the first (== second to last) function will be the row callback, the last function will be the completion callback.
 
+> This function (currently) loads all rows in memory first!
+
 #### exec(sql [, callback])
 This is an alias for [Database#run](#run)
 
@@ -138,7 +148,16 @@ Options can be one of the following:
 
 * `enableForeignKeys`: allows you to override enforcements of foreign keys (default: true)
 
-* `sqlite3Path`: full path the the `sqlite3` executable. Allows you to override the default location (/usr/bin/sqlite3)`
+* `sqlite3Path`: full path of the `sqlite3` executable. Allows you to override the default location (`/usr/bin/sqlite3`)
+
+## Debugging
+
+Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the htmltojson module:
+
+```
+DEBUG="noarch-sqlite3,htmltojson" node my-code.js
+```
+
 
 ## License
 
@@ -146,10 +165,11 @@ Options can be one of the following:
 
 ## Changelog
 
-Please check the extended [changelog](CHANGELOG.md)
+Please check the extended [changelog](CHANGELOG.md) (only on github)
 
 ##
 
 [npm]: https://www.npmjs.com/
-[sqlite3]: https://github.com/TryGhost/node-sqlite3/wiki/API
+[sqlite3]: https://www.npmjs.com/package/sqlite3
+[better-sqlite]: https://www.npmjs.com/package/better-sqlite3
 [yarn]: https://yarnpkg.com/
