@@ -168,6 +168,8 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
       callback(new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`));
     }
   });
+
+  return this;
 };
 Helper.prototype.all = function(...args)
 {
@@ -175,6 +177,7 @@ Helper.prototype.all = function(...args)
     args.pop() : err => this.emit('error', err);
 
   this.runQueries([ [ ...args ] ], true, callback);
+
   return this;
 };
 Helper.prototype.get = function(...args)
@@ -213,6 +216,8 @@ Helper.prototype.each = function(...args)
     rows.forEach(row => callback(err, row));
     if (complete) { complete(err, rows.length); }
   });
+
+  return this;
 };
 Helper.prototype.exec = Helper.prototype.run;
 Helper.prototype.close = function(callback)
