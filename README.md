@@ -4,11 +4,22 @@
 
 ## Table of Contents
 
+* [Requirements](#requirements)
 * [Features](#features)
 * [Install](#install)
 * [Usage](#usage)
-  * [Node](#node)
-* [Documentation](#documentation)
+* [API Documentation](#api_documentation)
+  * [constructor](#new)
+  * [close](#close)
+  * [configure](#configure)
+  * [run](#run)
+  * [all](#all)
+  * [each](#each)
+  * [exec](#exec)
+  * [get](#get)
+  * [runAll](#runall)
+  * [getVersionInfo](#versioninfo)
+* [Debugging](#debugging)
 * [License](#license)
 * [Changelog](#changelog)
 
@@ -44,7 +55,7 @@ yarn add noarch-sqlite3
 
 ## Usage
 
-### Node
+Here is a very straightforward example of how to use `noarch-sqlite3`:
 
 ```js
 const sqlite3 = require("noarch-sqlite3");
@@ -62,41 +73,53 @@ db.all("SELECT * FROM table", (err, records) =>
 });
 ```
 
-## Documentation
-
-### API usage
+## API Documentation
 
 The API is mostly identical to that of the [sqlite3] package and its [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
 
-#### new sqlite3.Database(filename [, options])
+<a id="new"></a>
+### new sqlite3.Database(filename [, options])
 Return a new Database object. This will use the executable set by the `sqlite3Path`option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
 
 * `filename`: The name of your new or already existing sqlite3 database
 * `options` (optional) Object containing valid [option](#options) properties.
 
+  <a id="options"></a>Options can be one of the following:
+
+  * `autoConvert`: instead of the default behavior of returning all values as strings, auto-convert 'true' and 'false' to their boolean values and '1'/'1.1' to their numeric values (only applies to pre-3.33.0 versions of `sqlite3`)
+
+  * `busyTimeout`: allows you to override the default busy timeout of 30000 ms
+
+  * `enableForeignKeys`: allows you to override enforcements of foreign keys (default: true)
+
+  * `sqlite3Path`: full path of the `sqlite3` executable. Allows you to override the default location (`/usr/bin/sqlite3`)
+
 May throw:
+
 * sqlite3 executable not found
 * unable to determine sqlite3 version
 * invalid (non semver) sqlite3 version detected
 * more recent version of sqlite3 required
 
 
-#### Database object:
+### Database object:
 
-
-#### close([callback])
+<a id="close"></a>
+### close([callback])
 Fake close that is only there to provide drop-in compatibility with [sqlite3]
 
 * `callback` (optional): called immediately with `null`
 
 
-#### configure(option, value)
+<a id="configure"></a>
+### configure(option, value)
 Set a configuration [option](#options) for the database.
 
 
-#### run(sql [, param, ...] [, callback])
+<a id="run"></a>
+### run(sql [, param, ...] [, callback])
 
-Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the Database object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
+Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
 
 * `sql`: The SQL query to run.
 
@@ -117,16 +140,18 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
 
-#### all(sql [, param, ...] [, callback])
-Run the SQL query with the specified parameters and call the `callback` with all result rows afterwards. Will return the Database object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
+<a id="all"></a>
+### all(sql [, param, ...] [, callback])
+Run the SQL query with the specified parameters and call the `callback` with all result rows afterwards. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of the callback is: `function(err, rows) {}`. `rows` is an array. If the result set is empty, it will be an empty array, otherwise it will have an object for each result row which in turn contains the values of that row, like the [Database#get](#get) function.
 
 > All result rows are retrieved first and stored in memory!
 
 
-#### each(sql [, param, ...] [, callback] [, complete])
-Run the SQL query with the specified parameters and call the callback once for each result row. Will return the Database object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
+<a id="each"></a>
+### each(sql [, param, ...] [, callback] [, complete])
+Run the SQL query with the specified parameters and call the callback once for each result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of the callback is: `function(err, row) {}`. If the result set succeeds but is empty, the callback is never called. In all other cases, the callback is called once for every retrieved row. The order of calls correspond exactly to the order of rows in the result set.
 
@@ -134,19 +159,22 @@ After all row callbacks were called, the `completion` callback will be called if
 
 > This function (currently) loads all rows in memory first!
 
-#### exec(sql [, callback])
+<a id="exec"></a>
+### exec(sql [, callback])
 This is an alias for [Database#run](#run)
 
 
-#### get(sql [, param, ...][, callback])
-Run the SQL query with the specified parameters and call the callback with a subsequent result row. Will return the Database object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
+<a id="get"></a>
+### get(sql [, param, ...][, callback])
+Run the SQL query with the specified parameters and call the callback with a subsequent result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of `callback` is: `function(err, row) {}`. If the result set is empty, the `row` parameter is undefined, otherwise it is an object containing the values for the first row.
 
 
-#### runAll(queries [, callback])
+<a id="runall"></a>
+### runAll(queries [, callback])
 
-Run multiple queries in succession. Will return the Database object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
+Run multiple queries in succession. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
 
 > The queries will be run in *exactly* the order in which they are found in the array
 
@@ -173,28 +201,17 @@ Run multiple queries in succession. Will return the Database object to allow for
 
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
-#### getVersionInfo()
+<a id="versioninfo"></a>
+### getVersionInfo()
 
 Return an object describing the verion of `sqlite3` found in the `sqlite3Path` on your system. For example:
-```json
+```js
 {
   version: "3.37.0",
   data: "2021-12-09 01:34:53",
   hash: "9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl"
 }
 ```
-
-#### Options
-
-Options can be one of the following:
-
-* `autoConvert`: instead of the default behavior of returning all values as strings, auto-convert 'true' and 'false' to their boolean values and '1'/'1.1' to their numeric values (only applies to pre-3.33.0 versions of `sqlite3`)
-
-* `busyTimeout`: allows you to override the default busy timeout of 30000 ms
-
-* `enableForeignKeys`: allows you to override enforcements of foreign keys (default: true)
-
-* `sqlite3Path`: full path of the `sqlite3` executable. Allows you to override the default location (`/usr/bin/sqlite3`)
 
 ## Debugging
 
@@ -209,9 +226,11 @@ DEBUG="noarch-sqlite3,htmltojson" node my-code.js
 
 [MIT](LICENSE)
 
+
 ## Changelog
 
 Please check the extended [changelog](CHANGELOG.md) (only on github)
+
 
 ##
 
