@@ -166,7 +166,7 @@ Run multiple queries in succession. Will return the Database object to allow for
             "INSERT INTO table (name) VALUES ('one')",
             [ "INSERT INTO table (name) VALUES (?)", "two" ],
             "INSERT INTO table (name) VALUES ('three')",
-            [ "INSERT INTO table (name) VALUES (?)", [ "four" ] ],
+            [ "INSERT INTO table (name) VALUES (?)", [ "four" ] ]
           ],
           err => console.log(err));
         )
