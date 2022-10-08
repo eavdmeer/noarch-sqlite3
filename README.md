@@ -176,7 +176,7 @@ Run multiple queries in succession. Will return the Database object to allow for
 #### getVersionInfo()
 
 Return an object describing the verion of `sqlite3` found in the `sqlite3Path` on your system. For example:
-```json
+```js
 {
   version: "3.37.0",
   data: "2021-12-09 01:34:53",
