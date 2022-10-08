@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.1
+- Introduce `Database#runAll` to call `Database#runQueries` instead of exposing internal function directly
+- Add test cases for `Database#runAll` 
+- Allow mixing of plain text queries and queries with placeholders and values in the queries array passed to `Database#runAll`
+
 ## v1.5.0
 - Expose the `Database#runQeueries` function
 - Have `Database#runQueries` behave like the `Database#run` function

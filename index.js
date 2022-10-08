@@ -130,7 +130,8 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
   {
     list.push('PRAGMA foreign_keys=ON');
   }
-  list.push(...queries.map(args => this.expandArgs(...args)));
+  list.push(...queries.map(args => args instanceof Array ?
+    this.expandArgs(...args) : args));
 
   // Use the correct options, depending on the installed version
   const pars = this.useJson ?
@@ -168,8 +169,6 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
       callback(new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`));
     }
   });
-
-  return this;
 };
 Helper.prototype.all = function(...args)
 {
@@ -201,6 +200,15 @@ Helper.prototype.run = function(...args)
   {
     callback(err, records ? records.pop() : records);
   });
+
+  return this;
+};
+Helper.prototype.runAll = function(...args)
+{
+  const callback = typeof args[args.length - 1] === 'function' ?
+    args.pop() : err => this.emit('error', err);
+
+  this.runQueries(...args, false, callback);
 
   return this;
 };
