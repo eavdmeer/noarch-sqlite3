@@ -47,11 +47,11 @@ yarn add noarch-sqlite3
 ### Node
 
 ```js
-const sqlite3 = require('noarch-sqlite3');
+const sqlite3 = require("noarch-sqlite3");
 
-const db = new sqlite3.Database('./mydb.db3', [ options ]);
+const db = new sqlite3.Database("./mydb.db3", [ options ]);
 
-db.all('SELECT * FROM table', (err, records) =>
+db.all("SELECT * FROM table", (err, records) =>
 {
   if (err)
   {
@@ -102,19 +102,17 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
 
 * `param, ...` (optional): If the SQL statement contains placeholders, parameters passed here will be replaced in the statement before it is executed. This automatically sanitizes inputs.
 
-There are two ways of passing bind parameters: directly in the function's arguments or as an array. Parameters may not be used for column or table names.
+  There are two ways of passing bind parameters: directly in the function's arguments or as an array. Parameters may not be used for column or table names.
 
-```js
-// Directly in the function arguments.
-db.run("UPDATE tbl SET name = ? WHERE id = ?", "bar", 2);
+        // Directly in the function arguments.
+        db.run("UPDATE tbl SET name = ? WHERE id = ?", "bar", 2);
 
-// As an array.
-db.run("UPDATE tbl SET name = ? WHERE id = ?", [ "bar", 2 ]);
-```
+        // As an array.
+        db.run("UPDATE tbl SET name = ? WHERE id = ?", [ "bar", 2 ]);
 
-In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array) or `undefined`
+  In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array) or `undefined`
 
-> You can use either an array or pass each parameter as an argument. Do **not** mix those!
+  > You can use either an array or pass each parameter as an argument. Do **not** mix those!
 
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
@@ -146,20 +144,32 @@ Run the SQL query with the specified parameters and call the callback with a sub
 The signature of `callback` is: `function(err, row) {}`. If the result set is empty, the `row` parameter is undefined, otherwise it is an object containing the values for the first row.
 
 
-#### runQueries(queries [, callback])
+#### runAll(queries [, callback])
 
 Run multiple queries in succession. Will return the Database object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
 
+> The queries will be run in *exactly* the order in which they are found in the array
+
 * `queries`: The SQL queries to run. This is an array of sets of arguments like you would pass to [Database#run](#run):
 
-```js
-db.runQueries([
-    [ 'INSERT INTO table (name) VALUES (?)', 'one' ],
-    [ 'INSERT INTO table (name) VALUES (?)', 'two' ],
-  ],
-  err => console.log(err));
-)
-```
+        db.runAll([
+            [ "INSERT INTO table (name) VALUES (?)", "one" ],
+            [ "INSERT INTO table (name) VALUES (?)", "two" ]
+          ],
+          err => console.log(err));
+        )
+
+  If you want to pass plain queries without placeholders, you can pass them
+  as strings or even mix both forms;
+
+        db.runAll([
+            "INSERT INTO table (name) VALUES ('one')",
+            [ "INSERT INTO table (name) VALUES (?)", "two" ],
+            "INSERT INTO table (name) VALUES ('three')",
+            [ "INSERT INTO table (name) VALUES (?)", [ "four" ] ],
+          ],
+          err => console.log(err));
+        )
 
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 

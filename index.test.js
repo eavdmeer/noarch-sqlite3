@@ -372,6 +372,63 @@ function queryTests(db)
         });
       });
     });
+    it('properly inerts multiple records with runAll', done =>
+    {
+      // Mix three styles: plain string, placeholders with array for the
+      // values and placeholders with plain arguments for the values
+      const q = [
+        'BEGIN TRANSACTION',
+        [
+          'INSERT INTO packages (package, url, npa) VALUES (?,?,?)',
+          [
+            'dashboard-backend-trans',
+            'https://dev.azure.com/P00743-dashboard-backend',
+            'web'
+          ]
+        ],
+        [
+          'INSERT INTO packages (package, url, npa) VALUES (?,?,?)',
+          'gmdb-agent-trans',
+          'https://dev.azure.com/P00743-gmdb-agent',
+          'both'
+        ],
+        'COMMIT'
+      ];
+      db.runAll(q, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        db.all('SELECT * FROM packages', (err, records) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(records).toEqual([
+            {
+              package: 'dashboard',
+              url: 'https://dev.azure.com/P00743-dashboard',
+              npa: 'web'
+            },
+            {
+              package: 'dashboard-backend-trans',
+              url: 'https://dev.azure.com/P00743-dashboard-backend',
+              npa: 'web'
+            },
+            {
+              package: 'gmdb-agent-trans',
+              url: 'https://dev.azure.com/P00743-gmdb-agent',
+              npa: 'both'
+            }
+          ]);
+          done();
+        });
+      });
+    });
     it('properly handles transaction failure', done =>
     {
       const q = `BEGIN TRANSACTION;
