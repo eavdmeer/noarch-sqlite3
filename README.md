@@ -16,6 +16,7 @@
   * [all](#all)
   * [each](#each)
   * [exec](#exec)
+  * [get](#get)
   * [runAll](#runall)
   * [getVersionInfo](#versioninfo)
 * [Debugging](#debugging)
@@ -163,6 +164,7 @@ After all row callbacks were called, the `completion` callback will be called if
 This is an alias for [Database#run](#run)
 
 
+<a id="get"></a>
 ### get(sql [, param, ...][, callback])
 Run the SQL query with the specified parameters and call the callback with a subsequent result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
