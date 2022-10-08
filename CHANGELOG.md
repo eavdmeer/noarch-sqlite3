@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.2
+- Add getVersionInfo docs
+- Minor other documentation fixes
+
 ## v1.5.1
 - Introduce `Database#runAll` to call `Database#runQueries` instead of exposing internal function directly
 - Add test cases for `Database#runAll` 
