@@ -69,7 +69,7 @@ db.all("SELECT * FROM table", (err, records) =>
 The API is mostly identical to that of the [sqlite3] package and its [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
 
 #### new sqlite3.Database(filename [, options])
-Return a new Database object. This will use the executable set by the ${sqlite3Path} option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
+Return a new Database object. This will use the executable set by the `sqlite3Path`option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
 
 * `filename`: The name of your new or already existing sqlite3 database
 * `options` (optional) Object containing valid [option](#options) properties.
@@ -166,13 +166,23 @@ Run multiple queries in succession. Will return the Database object to allow for
             "INSERT INTO table (name) VALUES ('one')",
             [ "INSERT INTO table (name) VALUES (?)", "two" ],
             "INSERT INTO table (name) VALUES ('three')",
-            [ "INSERT INTO table (name) VALUES (?)", [ "four" ] ],
+            [ "INSERT INTO table (name) VALUES (?)", [ "four" ] ]
           ],
           err => console.log(err));
         )
 
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
+#### getVersionInfo()
+
+Return an object describing the verion of `sqlite3` found in the `sqlite3Path` on your system. For example:
+```json
+{
+  version: "3.37.0",
+  data: "2021-12-09 01:34:53",
+  hash: "9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl"
+}
+```
 
 #### Options
 
