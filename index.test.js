@@ -434,7 +434,6 @@ function queryTests(db)
     {
       const queries = [];
       const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
-      db.configure('autoConvert', true);
 
       jest.setTimeout(10000);
 
@@ -445,8 +444,6 @@ function queryTests(db)
           `https://dev.azure.com/P00743-package_${i}`, 'both' ]);
       }
       queries.push('COMMIT');
-
-      console.log(queries.join(';').length);
 
       db.runAll(queries, err =>
       {
@@ -530,6 +527,7 @@ function queryTests(db)
 try
 {
   const db = new sqlite3.Database(dbFile);
+  db.configure('autoConvert', true);
 
   beforeAll(done =>
   {
@@ -594,13 +592,6 @@ try
   });
   standaloneTests(db);
   queryTests(db);
-  if (db.useJson)
-  {
-    // Repeat the query tests without -json support
-    db.useJson = false;
-    queryTests(db);
-    //db.useJson = true;
-  }
 }
 catch (ex)
 {
