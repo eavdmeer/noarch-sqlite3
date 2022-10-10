@@ -82,7 +82,7 @@ The API is mostly identical to that of the [sqlite3] package and its [API](https
 Return a new Database object. This will use the executable set by the `sqlite3Path`option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
 
 * `filename`: The name of your new or already existing sqlite3 database
-* `options` (optional) Object containing valid [option](#options) properties.
+* `options` (optional) Object containing valid option properties.
 
   <a id="options"></a>Options can be one of the following:
 
@@ -91,6 +91,8 @@ Return a new Database object. This will use the executable set by the `sqlite3Pa
   * `busyTimeout`: allows you to override the default busy timeout of 30000 ms
 
   * `enableForeignKeys`: allows you to override enforcements of foreign keys (default: true)
+
+  * `outputBufferSize`: allows you to override the maximum output buffer size for large query results (default: 1024 * 1024)
 
   * `sqlite3Path`: full path of the `sqlite3` executable. Allows you to override the default location (`/usr/bin/sqlite3`)
 
@@ -186,6 +188,8 @@ Run multiple queries in succession. Will return the `Database` object to allow f
           ],
           err => console.log(err));
         )
+
+  > Currently, queries are passed as a command line argument to `sqlite3` directly. Typically, there is a size limit for command line arguments of around 4096 characters!
 
   If you want to pass plain queries without placeholders, you can pass them
   as strings or even mix both forms;

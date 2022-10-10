@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.6.0
+- Add `outputBufferSize` option for large query results
+- Document query length limitation
+
+## v1.5.3
+- Major documentation cleanup
+
 ## v1.5.2
 - Add getVersionInfo docs
 - Minor other documentation fixes
