@@ -12,6 +12,9 @@ let callCount = 0;
 // Function to activate our override
 cp.activateOverride = () => override = true;
 
+// Pass through cp.spawn
+cp.spawn = (...args) => realCp.spawn(...args);
+
 // Override execFileSync if override is active
 cp.execFileSync = jest.fn((...args) =>
 {
@@ -39,11 +42,12 @@ cp.execFile = jest.fn((...args) =>
 {
   if (! override)
   {
-    realCp.execFile(...args);
-    return;
+    return realCp.execFile(...args);
   }
   const callback = args.pop();
   callback(null, '[{"timeout":30000}]\n[{"name": "fake"}]');
+
+  return jest.fn();
 });
 
 module.exports = cp;
