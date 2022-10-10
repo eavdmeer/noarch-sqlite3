@@ -158,7 +158,7 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     try
     {
       const set = this.useJson ?
-        JSON.parse(`[ ${stdout.replace(/]\n/g, '],').replace(/,$/, '')} ]`) :
+        JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
         htmlToJson(stdout, this.options.autoConvert);
 
       // Remove the first result set. It will contain the output of the
