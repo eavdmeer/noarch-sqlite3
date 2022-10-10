@@ -136,11 +136,13 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
 
   // Use the correct options, depending on the installed version
   const pars = this.useJson ?
-    [ '-json', this.db, list.join(';') ] :
-    [ '-html', '-header', this.db, list.join(';') ];
+    [ '-json', this.db ] :
+    [ '-html', '-header', this.db ];
 
   const options = { maxBuffer: this.options.outputBufferSize };
-  execFile(this.options.sqlite3Path, pars, options, (err, stdout, stderr) =>
+
+  // Create child process
+  const child = execFile(this.options.sqlite3Path, pars, options, (err, stdout, stderr) =>
   {
     if (err)
     {
@@ -158,7 +160,7 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     try
     {
       const set = this.useJson ?
-        JSON.parse(`[ ${stdout.replace(/]\n/g, '],').replace(/,$/, '')} ]`) :
+        JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
         htmlToJson(stdout, this.options.autoConvert);
 
       // Remove the first result set. It will contain the output of the
@@ -171,6 +173,10 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
       callback(new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`));
     }
   });
+
+  // Pass the queries on stdin
+  child.stdin.write(list.join(';'));
+  child.stdin.end();
 };
 Helper.prototype.all = function(...args)
 {
