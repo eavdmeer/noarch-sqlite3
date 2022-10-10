@@ -429,6 +429,44 @@ function queryTests(db)
         });
       });
     });
+    const max = 8500;
+    it(`properly inserts ${max} records`, done =>
+    {
+      const queries = [];
+      const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
+      db.configure('autoConvert', true);
+
+      jest.setTimeout(10000);
+
+      queries.push('BEGIN TRANSACTION');
+      for (let i = 0; i < max; i++)
+      {
+        queries.push([ q, `package_${i}`,
+          `https://dev.azure.com/P00743-package_${i}`, 'both' ]);
+      }
+      queries.push('COMMIT');
+
+      console.log(queries.join(';').length);
+
+      db.runAll(queries, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        db.get('SELECT COUNT(*) AS count FROM packages', (err, row) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(row).toEqual({ count: max + 1 });
+          done();
+        });
+      });
+    });
     it('properly handles transaction failure', done =>
     {
       const q = `BEGIN TRANSACTION;
@@ -561,6 +599,7 @@ try
     // Repeat the query tests without -json support
     db.useJson = false;
     queryTests(db);
+    //db.useJson = true;
   }
 }
 catch (ex)
