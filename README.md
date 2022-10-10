@@ -189,8 +189,6 @@ Run multiple queries in succession. Will return the `Database` object to allow f
           err => console.log(err));
         )
 
-  > Currently, queries are passed as a command line argument to `sqlite3` directly. Typically, there is a size limit for command line arguments. On MacOS, it appears to be around 1000000 characters, but it may be significantly less on your operating system!
-
   If you want to pass plain queries without placeholders, you can pass them
   as strings or even mix both forms;
 
