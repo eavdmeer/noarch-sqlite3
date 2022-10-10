@@ -372,7 +372,7 @@ function queryTests(db)
         });
       });
     });
-    it('properly inerts multiple records with runAll', done =>
+    it('properly inserts multiple records with runAll', done =>
     {
       // Mix three styles: plain string, placeholders with array for the
       // values and placeholders with plain arguments for the values
@@ -425,6 +425,41 @@ function queryTests(db)
               npa: 'both'
             }
           ]);
+          done();
+        });
+      });
+    });
+    const max = 500;
+    it(`properly inserts ${max} records`, done =>
+    {
+      const queries = [];
+      const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
+
+      jest.setTimeout(10000);
+
+      queries.push('BEGIN TRANSACTION');
+      for (let i = 0; i < max; i++)
+      {
+        queries.push([ q, `package_${i}`,
+          `https://dev.azure.com/P00743-package_${i}`, 'both' ]);
+      }
+      queries.push('COMMIT');
+
+      db.runAll(queries, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        db.get('SELECT COUNT(*) AS count FROM packages', (err, row) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(row).toEqual({ count: max + 1 });
           done();
         });
       });
@@ -492,6 +527,7 @@ function queryTests(db)
 try
 {
   const db = new sqlite3.Database(dbFile);
+  db.configure('autoConvert', true);
 
   beforeAll(done =>
   {
@@ -556,12 +592,6 @@ try
   });
   standaloneTests(db);
   queryTests(db);
-  if (db.useJson)
-  {
-    // Repeat the query tests without -json support
-    db.useJson = false;
-    queryTests(db);
-  }
 }
 catch (ex)
 {

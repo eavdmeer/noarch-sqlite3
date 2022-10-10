@@ -10,7 +10,8 @@ const defaultOptions = {
   autoConvert: false,
   busyTimeout: 30000,
   enableForeignKeys: true,
-  sqlite3Path: '/usr/bin/sqlite3'
+  sqlite3Path: '/usr/bin/sqlite3',
+  outputBufferSize: 1024 * 1024
 };
 
 function Helper(dbPath, options = {})
@@ -138,7 +139,8 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     [ '-json', this.db, list.join(';') ] :
     [ '-html', '-header', this.db, list.join(';') ];
 
-  execFile(this.options.sqlite3Path, pars, (err, stdout, stderr) =>
+  const options = { maxBuffer: this.options.outputBufferSize };
+  execFile(this.options.sqlite3Path, pars, options, (err, stdout, stderr) =>
   {
     if (err)
     {
@@ -156,8 +158,8 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     try
     {
       const set = this.useJson ?
-        JSON.parse(`[ ${stdout.replace(/\n/, ',').replace(/,$/, '')} ]`) :
-        htmlToJson(stdout);
+        JSON.parse(`[ ${stdout.replace(/]\n/g, '],').replace(/,$/, '')} ]`) :
+        htmlToJson(stdout, this.options.autoConvert);
 
       // Remove the first result set. It will contain the output of the
       // PRAGMA busy_timeout=xxxx.

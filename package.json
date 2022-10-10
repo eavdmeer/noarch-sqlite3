@@ -1,6 +1,6 @@
 {
   "name": "noarch-sqlite3",
-  "version": "1.5.3",
+  "version": "1.6.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,10 +18,10 @@
     ]
   },
   "devDependencies": {
+    "async": "^3.2.4",
     "jest": "^29.1.2"
   },
   "dependencies": {
-    "async": "^3.2.4",
     "debug": "^4.3.4",
     "himalaya": "^1.1.0",
     "semver": "^7.3.7"
