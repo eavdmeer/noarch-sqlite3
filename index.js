@@ -10,7 +10,8 @@ const defaultOptions = {
   autoConvert: false,
   busyTimeout: 30000,
   enableForeignKeys: true,
-  sqlite3Path: '/usr/bin/sqlite3'
+  sqlite3Path: '/usr/bin/sqlite3',
+  outputBufferSize: 1024 * 1024
 };
 
 function Helper(dbPath, options = {})
@@ -138,7 +139,8 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     [ '-json', this.db, list.join(';') ] :
     [ '-html', '-header', this.db, list.join(';') ];
 
-  execFile(this.options.sqlite3Path, pars, (err, stdout, stderr) =>
+  const options = { maxBuffer: this.options.outputBufferSize };
+  execFile(this.options.sqlite3Path, pars, options, (err, stdout, stderr) =>
   {
     if (err)
     {
