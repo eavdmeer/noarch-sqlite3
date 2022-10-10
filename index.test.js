@@ -429,7 +429,7 @@ function queryTests(db)
         });
       });
     });
-    const max = 500;
+    const max = 15000;
     it(`properly inserts ${max} records`, done =>
     {
       const queries = [];
