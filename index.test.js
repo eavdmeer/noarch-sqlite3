@@ -372,7 +372,7 @@ function queryTests(db)
         });
       });
     });
-    it('properly inerts multiple records with runAll', done =>
+    it('properly inserts multiple records with runAll', done =>
     {
       // Mix three styles: plain string, placeholders with array for the
       // values and placeholders with plain arguments for the values
