@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.1
+- Fix major bug in JSON parsing
+- Fix bug: `autoConvert` option was not passed to `htmlToJson`
+- Update maximum query length documentation
+- Always run tests with `autoConvert` on
+
 ## v1.6.0
 - Add `outputBufferSize` option for large query results
 - Document query length limitation
