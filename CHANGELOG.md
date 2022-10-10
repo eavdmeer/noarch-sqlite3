@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.7.0
+- Pass queries through stdin instead of the command line to allow much larger query sets
+
 ## v1.6.1
 - Fix major bug in JSON parsing
 - Fix bug: `autoConvert` option was not passed to `htmlToJson`
