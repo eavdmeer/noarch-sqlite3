@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.8.0
+- Drop himalaya dependency in favor of a custom parser
+
 ## v1.7.0
 - Pass queries through stdin instead of the command line to allow much larger query sets
 

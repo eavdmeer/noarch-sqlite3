@@ -1,6 +1,6 @@
 /* global describe, it, expect */
 
-const { convert, htmlToJson } = require('./htmltojson');
+const { convert, sqlite3Parse } = require('./sqlite3parse');
 
 describe('convert', () =>
 {
@@ -32,12 +32,12 @@ describe('htmltojson', () =>
   it('properly handles empty sqlite3 html output', () =>
   {
     const html = '';
-    expect(htmlToJson(html)).toEqual([]);
+    expect(sqlite3Parse(html)).toEqual([]);
   });
   it('properly handles sqlite3 html output without header', () =>
   {
-    const html = '<TABLE><TR><TD>dashboard</TD></TR></TABLE>';
-    expect(() => htmlToJson(html)).toThrow(/Unable to detect HTML header/);
+    const html = '<TR><TD>dashboard</TD></TR>';
+    expect(() => sqlite3Parse(html)).toThrow(/Unable to detect HTML header/);
   });
   it('properly handles non-sqlite3 html', () =>
   {
@@ -46,7 +46,7 @@ describe('htmltojson', () =>
       <TD>dashboard</TD>
       <TD>no comment</TD>
     </TR>`;
-    expect(() => htmlToJson(html)).toThrow(/Unable to detect HTML header/);
+    expect(() => sqlite3Parse(html)).toThrow(/Parse error in HTML/);
   });
   it('properly parses sqlite3 html output', () =>
   {
@@ -77,7 +77,7 @@ with an empty line</TD>
         }
       ]
     ];
-    expect(htmlToJson(html)).toEqual(json);
+    expect(sqlite3Parse(html)).toEqual(json);
   });
   it('properly parses multi-record sqlite3 html output', () =>
   {
@@ -119,7 +119,7 @@ with an empty line</TD>
         }
       ]
     ];
-    expect(htmlToJson(html)).toEqual(json);
+    expect(sqlite3Parse(html)).toEqual(json);
   });
   it('properly parses sqlite3 html output with empty values', () =>
   {
@@ -171,7 +171,7 @@ with an empty line</TD>
       ]
     ];
 
-    expect(htmlToJson(html, true)).toEqual(json);
+    expect(sqlite3Parse(html, true)).toEqual(json);
   });
   it('properly auto-converts sqlite3 html output values', () =>
   {
@@ -204,6 +204,55 @@ with an empty line</TD>
         }
       ]
     ];
-    expect(htmlToJson(html, true)).toEqual(json);
+    expect(sqlite3Parse(html, true)).toEqual(json);
+  });
+  it('properly auto-converts sqlite3 html with lots of white space', () =>
+  {
+    const html = `
+
+<TR>
+  <th>aap</th>
+  <TH>noot</th>
+  <TH>comment</th>
+  <TH>timestamp</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td>2</td>
+  <td>2
+and
+3</td>
+  <td>2022-10-11 20:44:00</td>
+</tr>
+<tr>
+  <th>timeout</th>
+</tr>
+<tr>
+  <td>300000</td>
+</tr>
+
+<tr>
+  <td></td>
+</tr>
+
+
+
+`;
+
+    const json = [
+      [
+        {
+          aap: 1,
+          noot: 2,
+          comment: '2\nand\n3',
+          timestamp: '2022-10-11 20:44:00'
+        }
+      ],
+      [
+        { timeout: 300000 },
+        { timeout: '' }
+      ]
+    ];
+    expect(sqlite3Parse(html, true)).toEqual(json);
   });
 });

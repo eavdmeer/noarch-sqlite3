@@ -1,6 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
-const { execFile, execFileSync } = require('node:child_process');
-const { htmlToJson } = require('./modules/htmltojson');
+const { spawn, execFileSync } = require('node:child_process');
+const { sqlite3Parse } = require('./modules/sqlite3parse');
 const util = require('util');
 
 const debug = require('debug')('noarch-sqlite3');
@@ -142,13 +142,28 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
   const options = { maxBuffer: this.options.outputBufferSize };
 
   // Create child process
-  const child = execFile(this.options.sqlite3Path, pars, options, (err, stdout, stderr) =>
+  const child = spawn(this.options.sqlite3Path, pars, options);
+
+  // Catch execution errors
+  child.on('error', err =>
+    callback(new Error(`Failed to run sqlite3: ${err.message}`)));
+
+  // Capture stdout
+  let stdout = '';
+  child.stdout.on('data', d => stdout += d);
+
+  // Capture stderr
+  let stderr = '';
+  child.stderr.on('data', d => stderr += d);
+
+  child.on('close', code =>
   {
-    if (err)
+    if (code !== 0)
     {
-      callback(new Error(`Failed to run query: ${stderr}`));
+      callback(new Error(`Failed to run query (code ${code}): ${stderr}`));
       return;
     }
+    debug('query output:', stdout);
 
     // Early out for run/exec
     if (! returnResult)
@@ -161,7 +176,7 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     {
       const set = this.useJson ?
         JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
-        htmlToJson(stdout, this.options.autoConvert);
+        sqlite3Parse(stdout, this.options.autoConvert);
 
       // Remove the first result set. It will contain the output of the
       // PRAGMA busy_timeout=xxxx.

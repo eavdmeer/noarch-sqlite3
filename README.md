@@ -150,6 +150,23 @@ The signature of the callback is: `function(err, rows) {}`. `rows` is an array. 
 
 > All result rows are retrieved first and stored in memory!
 
+Please note that, while this function allows `query` to contain multiple semicolon separated SQL statements, the result can get highly confusing if any of the queries to not return results. You will get a set of records back:
+
+```
+[
+  [ records for query 1],
+  [ records for query 2]
+  ...
+]
+```
+
+However, any query that does not return anything **will not** have an empty entry in the set. Moreover, if there is only one set of records present, only that set is returned:
+
+```
+[ record for set with result ]
+```
+
+In that case you will not receive an array of arrays!
 
 <a id="each"></a>
 ### each(sql [, param, ...] [, callback] [, complete])
@@ -217,10 +234,10 @@ Return an object describing the verion of `sqlite3` found in the `sqlite3Path` o
 
 ## Debugging
 
-Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the htmltojson module:
+Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the sqlite3parse module:
 
 ```
-DEBUG="noarch-sqlite3,htmltojson" node my-code.js
+DEBUG="noarch-sqlite3,sqlite3parse" node my-code.js
 ```
 
 
