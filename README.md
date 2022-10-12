@@ -51,8 +51,10 @@ INSERT INTO table (field, field, ..) VALUES
 (z, z, z, ...);
 COMMIT;
 ```
-In the insert test cases, inserting 15000 records took 258 ms, so around 58000 records/s.
+A test inserting 15000 records took 258 ms, so around 58000 records/s.
 
+Inserting those same 15000 records and reading them back took 272 ms for
+JSON support and 370 ms for HTML.
 
 ## Install
 

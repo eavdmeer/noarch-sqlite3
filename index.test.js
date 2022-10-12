@@ -457,8 +457,6 @@ function queryTests(db)
       const queries = [];
       const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
 
-      jest.setTimeout(10000);
-
       queries.push('BEGIN TRANSACTION');
       for (let i = 0; i < max; i++)
       {
@@ -482,6 +480,38 @@ function queryTests(db)
             return;
           }
           expect(row).toEqual({ count: max + 1 });
+          done();
+        });
+      });
+    });
+    it(`properly inserts and reads back ${max} records`, done =>
+    {
+      const queries = [];
+      const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
+
+      queries.push('BEGIN TRANSACTION');
+      for (let i = 0; i < max; i++)
+      {
+        queries.push([ q, `package_${i}`,
+          `https://dev.azure.com/P00743-package_${i}`, 'both' ]);
+      }
+      queries.push('COMMIT');
+
+      db.runAll(queries, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        db.all('SELECT * FROM packages', (err, rows) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(rows.length).toEqual(max + 1);
           done();
         });
       });
