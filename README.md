@@ -234,10 +234,10 @@ Return an object describing the verion of `sqlite3` found in the `sqlite3Path` o
 
 ## Debugging
 
-Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the htmltojson module:
+Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the sqlite3parse module:
 
 ```
-DEBUG="noarch-sqlite3,htmltojson" node my-code.js
+DEBUG="noarch-sqlite3,sqlite3parse" node my-code.js
 ```
 
 
