@@ -6,6 +6,7 @@
 
 * [Requirements](#requirements)
 * [Features](#features)
+  * [Performance](#performance)
 * [Install](#install)
 * [Usage](#usage)
 * [API Documentation](#api_documentation)
@@ -36,6 +37,21 @@ For this module to work, you **need** a version of the `sqlite3` command line to
 This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely elaviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
 
 > Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
+
+### Performance
+
+Inserting large numbers of records should always be done inside of a transaction in `sqlite3` to help with performance:
+
+```sql
+BEGIN TRANACTION;
+INSERT INTO table (field, field, ..) VALUES
+(a, b, c, ...),
+(d, e, f, ...)
+....
+(z, z, z, ...);
+COMMIT;
+```
+In the insert test cases, inserting 15000 records took 258 ms, so around 58000 records/s.
 
 
 ## Install
@@ -150,7 +166,7 @@ The signature of the callback is: `function(err, rows) {}`. `rows` is an array. 
 
 > All result rows are retrieved first and stored in memory!
 
-Please note that, while this function allows `query` to contain multiple semicolon separated SQL statements, the result can get highly confusing if any of the queries to not return results. You will get a set of records back:
+Please note that, while this function allows `query` to contain multiple semicolon separated SQL statements, the result can get highly confusing if any of the queries do not return results. You will get a set of records back:
 
 ```
 [
