@@ -163,6 +163,7 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
       callback(new Error(`Failed to run query (code ${code}): ${stderr}`));
       return;
     }
+    debug('query output:', stdout);
 
     // Early out for run/exec
     if (! returnResult)

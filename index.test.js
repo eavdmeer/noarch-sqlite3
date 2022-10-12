@@ -191,6 +191,28 @@ function queryTests(db)
         done();
       });
     });
+    it('properly reads result set with one empty record', done =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=?; SELECT * FROM packages WHERE package=?';
+      const d = [ 'non-existent', 'dashboard' ];
+      db.all(q, d, (err, records) =>
+      {
+        if (err)
+        {
+          console.log(err.message);
+          done(err);
+          return;
+        }
+        expect(records).toEqual([
+          {
+            package: 'dashboard',
+            url: 'https://dev.azure.com/P00743-dashboard',
+            npa: 'web'
+          }
+        ]);
+        done();
+      });
+    });
     it('properly inserts a new record', done =>
     {
       const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
