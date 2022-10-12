@@ -614,6 +614,14 @@ try
   });
   standaloneTests(db);
   queryTests(db);
+  if (db.useJson)
+  {
+    // Repeat the query tests with the -html option
+    const ldb = new sqlite3.Database(dbFile);
+    ldb.configure('autoConvert', true);
+    ldb.useJson = false;
+    queryTests(ldb);
+  }
 }
 catch (ex)
 {

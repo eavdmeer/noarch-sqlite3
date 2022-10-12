@@ -111,35 +111,4 @@ function sqlite3Parse(html = '', autoConvert = false)
   return values;
 }
 
-const html = `
-
-<TR>
-  <th>aap</th>
-  <TH>noot</th>
-  <TH>comment</th>
-  <TH>timestamp</th>
-</tr>
-<tr>
-  <td>1</td>
-  <td>2</td>
-  <td>2
-and
-3</td>
-  <td>2022-10-11 20:44:00</td>
-</tr>
-<tr>
-  <th>timeout</th>
-</tr>
-<tr>
-  <td>300000</td>
-</tr>
-
-<tr>
-  <td></td>
-</tr>
-
-
-
-`;
-
 module.exports = { sqlite3Parse, convert };

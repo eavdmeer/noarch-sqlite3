@@ -1,6 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const { spawn, execFileSync } = require('node:child_process');
-const { htmlToJson } = require('./modules/htmltojson');
+const { sqlite3Parse } = require('./modules/sqlite3parse');
 const util = require('util');
 
 const debug = require('debug')('noarch-sqlite3');
@@ -176,7 +176,7 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     {
       const set = this.useJson ?
         JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
-        htmlToJson(stdout, this.options.autoConvert);
+        sqlite3Parse(stdout, this.options.autoConvert);
 
       // Remove the first result set. It will contain the output of the
       // PRAGMA busy_timeout=xxxx.
