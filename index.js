@@ -133,8 +133,11 @@ Helper.prototype.expandArgs = function(...args)
 
   debug('found object bind parameters');
 
+  // Replace keys like $key/@key/:key by their values in the data object.
+  // Take care to replace the longest keys first to prevent issues with
+  // similar keys like 'key' 'key1', 'keylong'
   return Object.entries(data)
-    .sort((a, b) => a.length - b.length)
+    .sort((a, b) => b[0].length - a[0].length)
     .reduce((a, [ n, v ]) => a
       .replace(`$${n}`, this.quote(this.safe(v)))
       .replace(`@${n}`, this.quote(this.safe(v)))
