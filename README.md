@@ -1,6 +1,7 @@
 # noarch-sqlite3
 
 > This should currently be considered untested and experimental! Be warned!
+> Please report any [issues](https://github.com/eavdmeer/noarch-sqlite3/issues) on GitHub
 
 ## Table of Contents
 
@@ -271,7 +272,7 @@ DEBUG="noarch-sqlite3,sqlite3parse" node my-code.js
 
 ## Changelog
 
-Please check the extended [changelog](CHANGELOG.md) (only on github)
+Please check the extended [changelog](https://github.com/eavdmeer/noarch-sqlite3/blob/master/CHANGELOG.md) (GitHub)
 
 
 ##
