@@ -2,9 +2,9 @@
 name: npm-publish
 run-name: ${{ github.actor }} is pushing to npm
 on:
-    pull_request:
-        branches:
-            - master
+  push:
+    branches:
+      - master
 jobs:
   publish:
     runs-on: ubuntu-latest
