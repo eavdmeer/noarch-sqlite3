@@ -145,7 +145,7 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
 
 * `param, ...` (optional): If the SQL statement contains placeholders, parameters passed here will be replaced in the statement before it is executed. This automatically sanitizes inputs.
 
-  There are two ways of passing bind parameters: directly in the function's arguments or as an array. Parameters may not be used for column or table names.
+  There are three ways of passing bind parameters: directly in the function's arguments, as an array or as an object. Parameters may not be used for column or table names.
 
         // Directly in the function arguments.
         db.run("UPDATE tbl SET name = ? WHERE id = ?", "bar", 2);
@@ -153,9 +153,14 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
         // As an array.
         db.run("UPDATE tbl SET name = ? WHERE id = ?", [ "bar", 2 ]);
 
-  In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array) or `undefined`
+        // As an object.
+        db.run("UPDATE tbl SET name = $name WHERE id = $id", { name`: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = :name WHERE id = :id", { name`: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = @name WHERE id = @id", { name`: "bar", id: 2 });
 
-  > You can use either an array or pass each parameter as an argument. Do **not** mix those!
+  In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array), `{}` (empty object) or `undefined`
+
+  > You can use either an array or object or pass each parameter as an argument. Do **not** mix those!
 
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 

@@ -85,43 +85,61 @@ Helper.prototype.safe = function(data)
 Helper.prototype.quote = function(data)
 {
   debug(`quote ${JSON.stringify(data)}`);
-  return typeof data === 'string' ? `'${data}'` : data;
+  return data instanceof Date ? `'${data.toISOString()}'` :
+    typeof data === 'string' ? `'${data}'` : data;
 };
 Helper.prototype.expandArgs = function(...args)
 {
   // First argument is the query
   const query = args.shift();
 
-  // Second argument may be an array with all values or just the first of
-  // the parameter values
+  // Second argument may be an array with all values, an object with all
+  // values or just the first of the parameter values
   const data = [ 'undefined', 'object' ].includes(typeof args[0]) ?
-    args[0] : args;
+    args[0] instanceof Date ? args :
+      args[0] : args;
 
   debug(`expanding ${query}/${JSON.stringify(data)}`);
-  if (! data || data.length === 0) { return query; }
-  if (! (data instanceof Array))
+
+  // Early out if we get no parameter values
+  if (data === undefined ||
+    data instanceof Array && data.length === 0 ||
+    typeof data === 'object' && Object.keys(data).length === 0)
   {
-    throw new Error(`Invalid type for query data: ${typeof data}`);
+    debug('no bind parameters detected, returning query');
+    return query;
   }
 
-  // Sanity check. We need as many data elements as bind parameters
-  const bpars = (query.match(/\?/g) || []).length;
-  if (data.length < bpars)
+  if (data instanceof Array)
   {
-    throw new Error(`Too few (${data.length}/${bpars}) bind parameter values)`);
-  }
-  else if (data.length > bpars)
-  {
-    throw new Error(`Too many (${data.length}/${bpars}) bind parameter values)`);
+    debug('found array bind parameters');
+
+    // Sanity check. We need as many data elements as bind parameters
+    const bpars = (query.match(/\?/g) || []).length;
+    if (data.length < bpars)
+    {
+      throw new Error(`Too few (${data.length}/${bpars}) bind parameter values)`);
+    }
+    else if (data.length > bpars)
+    {
+      throw new Error(`Too many (${data.length}/${bpars}) bind parameter values)`);
+    }
+
+    return data
+      .map(v => this.safe(v))
+      .map(v => this.quote(v))
+      .reduce((a, v) => a.replace('?', v), query);
   }
 
-  let result = query;
-  data
-    .map(v => this.safe(v))
-    .map(v => this.quote(v))
-    .forEach(v => result = result.replace('?', v));
+  debug('found object bind parameters');
 
-  return result;
+  return Object.entries(data)
+    .sort((a, b) => a.length - b.length)
+    .reduce((a, [ n, v ]) => a
+      .replace(`$${n}`, this.quote(this.safe(v)))
+      .replace(`@${n}`, this.quote(this.safe(v)))
+      .replace(`:${n}`, this.quote(this.safe(v)))
+    , query);
 };
 Helper.prototype.runQueries = function(queries, returnResult, callback)
 {
