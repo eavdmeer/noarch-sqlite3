@@ -108,10 +108,11 @@ function standaloneTests(db)
     });
     it('properly expands bind parameters in an object', () =>
     {
-      const q = 'SELECT * FROM packages WHERE package=$pkg AND npa=:npa AND age=@age';
-      const d = { bad: 'value', age: 21, npa: 'web', pkg: 'sqlite3' };
+      const q = 'SELECT * FROM packages WHERE package=$pkg AND npa=:npa AND age=@age AND agelong=@agelong';
+      const d = { bad: 'value', age: 21, npa: 'web', pkg: 'sqlite3',
+        agelong: 50 };
       expect(db.expandArgs(q, d))
-        .toBe('SELECT * FROM packages WHERE package=\'sqlite3\' AND npa=\'web\' AND age=21');
+        .toBe('SELECT * FROM packages WHERE package=\'sqlite3\' AND npa=\'web\' AND age=21 AND agelong=50');
     });
     it('properly expands date bind parameters in an object', () =>
     {
