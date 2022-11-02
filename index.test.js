@@ -53,7 +53,13 @@ function standaloneTests(db)
     it('properly works without bind parameters', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=\'dashboard\'';
-      const d = undefined;
+      let d = [];
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
+      d = {};
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
+      d = undefined;
       expect(db.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
     });
@@ -100,11 +106,27 @@ function standaloneTests(db)
       expect(() => db.expandArgs(q, ...d))
         .toThrow(/Too many .* bind parameter values/);
     });
-    it('properly catches invalid types for data', () =>
+    it('properly expands bind parameters in an object', () =>
     {
-      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
-      const d = { bad: 'value' };
-      expect(() => db.expandArgs(q, d)).toThrow(/Invalid type for query data/);
+      const q = 'SELECT * FROM packages WHERE package=$pkg AND npa=:npa AND age=@age';
+      const d = { bad: 'value', age: 21, npa: 'web', pkg: 'sqlite3' };
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'sqlite3\' AND npa=\'web\' AND age=21');
+    });
+    it('properly expands date bind parameters in an object', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE date=$date';
+      const now = new Date();
+      const d = { date: now };
+      expect(db.expandArgs(q, d))
+        .toBe(`SELECT * FROM packages WHERE date='${now.toISOString()}'`);
+    });
+    it('properly expands simple date bind parameters', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE date=?';
+      const d = new Date();
+      expect(db.expandArgs(q, d))
+        .toBe(`SELECT * FROM packages WHERE date='${d.toISOString()}'`);
     });
   });
   describe('noarch-sqlite3.close', () =>
@@ -457,8 +479,6 @@ function queryTests(db)
       const queries = [];
       const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
 
-      jest.setTimeout(10000);
-
       queries.push('BEGIN TRANSACTION');
       for (let i = 0; i < max; i++)
       {
@@ -482,6 +502,38 @@ function queryTests(db)
             return;
           }
           expect(row).toEqual({ count: max + 1 });
+          done();
+        });
+      });
+    });
+    it(`properly inserts and reads back ${max} records`, done =>
+    {
+      const queries = [];
+      const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
+
+      queries.push('BEGIN TRANSACTION');
+      for (let i = 0; i < max; i++)
+      {
+        queries.push([ q, `package_${i}`,
+          `https://dev.azure.com/P00743-package_${i}`, 'both' ]);
+      }
+      queries.push('COMMIT');
+
+      db.runAll(queries, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        db.all('SELECT * FROM packages', (err, rows) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(rows.length).toEqual(max + 1);
           done();
         });
       });

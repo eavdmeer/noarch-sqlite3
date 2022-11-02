@@ -1,11 +1,13 @@
 # noarch-sqlite3
 
 > This should currently be considered untested and experimental! Be warned!
+> Please report any [issues](https://github.com/eavdmeer/noarch-sqlite3/issues) on GitHub
 
 ## Table of Contents
 
 * [Requirements](#requirements)
 * [Features](#features)
+  * [Performance](#performance)
 * [Install](#install)
 * [Usage](#usage)
 * [API Documentation](#api_documentation)
@@ -37,6 +39,23 @@ This module allows you to interact with the `sqlite3` binary installed on your s
 
 > Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
 
+### Performance
+
+Inserting large numbers of records should always be done inside of a transaction in `sqlite3` to help with performance:
+
+```sql
+BEGIN TRANACTION;
+INSERT INTO table (field, field, ..) VALUES
+(a, b, c, ...),
+(d, e, f, ...)
+....
+(z, z, z, ...);
+COMMIT;
+```
+A test inserting 15000 records took 258 ms, so around 58000 records/s.
+
+Inserting those same 15000 records and reading them back took 272 ms for
+JSON support and 370 ms for HTML.
 
 ## Install
 
@@ -127,7 +146,7 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
 
 * `param, ...` (optional): If the SQL statement contains placeholders, parameters passed here will be replaced in the statement before it is executed. This automatically sanitizes inputs.
 
-  There are two ways of passing bind parameters: directly in the function's arguments or as an array. Parameters may not be used for column or table names.
+  There are three ways of passing bind parameters: directly in the function's arguments, as an array or as an object. Parameters may not be used for column or table names.
 
         // Directly in the function arguments.
         db.run("UPDATE tbl SET name = ? WHERE id = ?", "bar", 2);
@@ -135,9 +154,14 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
         // As an array.
         db.run("UPDATE tbl SET name = ? WHERE id = ?", [ "bar", 2 ]);
 
-  In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array) or `undefined`
+        // As an object.
+        db.run("UPDATE tbl SET name = $name WHERE id = $id", { name`: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = :name WHERE id = :id", { name`: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = @name WHERE id = @id", { name`: "bar", id: 2 });
 
-  > You can use either an array or pass each parameter as an argument. Do **not** mix those!
+  In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array), `{}` (empty object) or `undefined`
+
+  > You can use either an array or object or pass each parameter as an argument. Do **not** mix those!
 
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
@@ -150,7 +174,7 @@ The signature of the callback is: `function(err, rows) {}`. `rows` is an array. 
 
 > All result rows are retrieved first and stored in memory!
 
-Please note that, while this function allows `query` to contain multiple semicolon separated SQL statements, the result can get highly confusing if any of the queries to not return results. You will get a set of records back:
+Please note that, while this function allows `query` to contain multiple semicolon separated SQL statements, the result can get highly confusing if any of the queries do not return results. You will get a set of records back:
 
 ```
 [
@@ -248,7 +272,7 @@ DEBUG="noarch-sqlite3,sqlite3parse" node my-code.js
 
 ## Changelog
 
-Please check the extended [changelog](CHANGELOG.md) (only on github)
+Please check the extended [changelog](https://github.com/eavdmeer/noarch-sqlite3/blob/master/CHANGELOG.md) (GitHub)
 
 
 ##
