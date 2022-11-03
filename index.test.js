@@ -594,6 +594,17 @@ function queryTests(db)
       db.on('error', err => expect(err.message).toMatch(/no such table/));
       db.all(q);
     });
+    it('correctly detects SQL syntax errors', done =>
+    {
+      const q = 'SELECTING LIKE THIS WILL NOT WORK';
+      db.all(q, (err, rows) =>
+      {
+        expect(err).toBeTruthy();
+        expect(err.message).toMatch(/near "SELECTING": syntax error/);
+        expect(rows).toBeUndefined();
+        done();
+      });
+    });
   });
 }
 
