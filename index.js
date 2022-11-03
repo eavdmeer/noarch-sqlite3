@@ -179,12 +179,15 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
 
   child.on('close', code =>
   {
-    if (code !== 0)
+    debug('exit code:', code);
+    debug('query output:', stdout);
+    debug('stderr output:', stderr);
+
+    if (code !== 0 || stderr.includes('Error:'))
     {
       callback(new Error(`Failed to run query (code ${code}): ${stderr}`));
       return;
     }
-    debug('query output:', stdout);
 
     // Early out for run/exec
     if (! returnResult)
@@ -212,6 +215,7 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
 
   // Pass the queries on stdin
   child.stdin.write(list.join(';'));
+  child.stdin.write(';');
   child.stdin.end();
 };
 Helper.prototype.all = function(...args)
