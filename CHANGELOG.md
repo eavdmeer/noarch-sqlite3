@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.10.0
+- Fix bug where older sqlite versions complain about incomplete SQL due to a missing trailing semicolon
+- Detect the string `Error:` in the `stderr` output as the incomplete SQL error comes with a 0 exit code
+
+## v1.9.2
+## v1.9.1
+- Fix object key sorting
+
+## v1.9.0
+- Resolve issue #11: support object-style query data
+
 ## v1.8.0
 - Drop himalaya dependency in favor of a custom parser
 
