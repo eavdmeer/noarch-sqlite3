@@ -81,6 +81,15 @@ function standaloneTests(db)
       expect(db.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
     });
+    it('properly substitutes multiple values with a ? in it', () =>
+    {
+      const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
+      const d = [ 'dashboard?', 'both?' ];
+      expect(db.expandArgs(q, d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard?\' AND npa=\'both?\'');
+      expect(db.expandArgs(q, ...d))
+        .toBe('SELECT * FROM packages WHERE package=\'dashboard?\' AND npa=\'both?\'');
+    });
     it('properly substitutes mixed type values in a querY', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
