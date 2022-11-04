@@ -125,15 +125,9 @@ Helper.prototype.expandArgs = function(...args)
       throw new Error(`Too many (${data.length}/${bpars}) bind parameter values)`);
     }
 
-    /*
-    const result = data
-      .map(v => this.safe(v))
-      .map(v => this.quote(v))
-      .reduce((a, v) => a.replace('?', v), query);
-    */
-
     let i = 0;
-    const result = query.replace(/\?/g, () => this.quote(this.safe(data[i++])));
+    const result = query
+      .replace(/\?/g, () => this.quote(this.safe(data[i++])));
     debug('expanded to:', result);
 
     return result;
@@ -146,11 +140,8 @@ Helper.prototype.expandArgs = function(...args)
   // similar keys like 'key' 'key1', 'keylong'
   const result = Object.entries(data)
     .sort((a, b) => b[0].length - a[0].length)
-    .reduce((a, [ n, v ]) => a
-      .replace(`$${n}`, this.quote(this.safe(v)))
-      .replace(`@${n}`, this.quote(this.safe(v)))
-      .replace(`:${n}`, this.quote(this.safe(v)))
-    , query);
+    .map(([ n, v ]) => [ n, this.quote(this.safe(v)) ])
+    .reduce((a, [ n, v ]) => a.replace(new RegExp(`[$:@]${n}`), v), query);
   debug('expanded to:', result);
 
   return result;
