@@ -125,10 +125,12 @@ Helper.prototype.expandArgs = function(...args)
       throw new Error(`Too many (${data.length}/${bpars}) bind parameter values)`);
     }
 
-    return data
-      .map(v => this.safe(v))
-      .map(v => this.quote(v))
-      .reduce((a, v) => a.replace('?', v), query);
+    let i = 0;
+    const result = query
+      .replace(/\?/g, () => this.quote(this.safe(data[i++])));
+    debug('expanded to:', result);
+
+    return result;
   }
 
   debug('found object bind parameters');
@@ -136,13 +138,13 @@ Helper.prototype.expandArgs = function(...args)
   // Replace keys like $key/@key/:key by their values in the data object.
   // Take care to replace the longest keys first to prevent issues with
   // similar keys like 'key' 'key1', 'keylong'
-  return Object.entries(data)
+  const result = Object.entries(data)
     .sort((a, b) => b[0].length - a[0].length)
-    .reduce((a, [ n, v ]) => a
-      .replace(`$${n}`, this.quote(this.safe(v)))
-      .replace(`@${n}`, this.quote(this.safe(v)))
-      .replace(`:${n}`, this.quote(this.safe(v)))
-    , query);
+    .map(([ n, v ]) => [ n, this.quote(this.safe(v)) ])
+    .reduce((a, [ n, v ]) => a.replace(new RegExp(`[$:@]${n}`), v), query);
+  debug('expanded to:', result);
+
+  return result;
 };
 Helper.prototype.runQueries = function(queries, returnResult, callback)
 {
