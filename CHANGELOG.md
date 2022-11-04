@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.11.0
+- Fix bug in expansion of '?' placeholders. Would fail if one of multiple values had a '?' in it.
+
 ## v1.10.0
 - Fix bug where older sqlite versions complain about incomplete SQL due to a missing trailing semicolon
 - Detect the string `Error:` in the `stderr` output as the incomplete SQL error comes with a 0 exit code
