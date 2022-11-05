@@ -136,12 +136,9 @@ Helper.prototype.expandArgs = function(...args)
   debug('found object bind parameters');
 
   // Replace keys like $key/@key/:key by their values in the data object.
-  // Take care to replace the longest keys first to prevent issues with
-  // similar keys like 'key' 'key1', 'keylong'
-  const result = Object.entries(data)
-    .sort((a, b) => b[0].length - a[0].length)
-    .map(([ n, v ]) => [ n, this.quote(this.safe(v)) ])
-    .reduce((a, [ n, v ]) => a.replace(new RegExp(`[$:@]${n}`), v), query);
+  const re = new RegExp(`[@:$](${Object.keys(data).join('|')})\\b`, 'g');
+  const result = query.replace(re, (a, b) => this.quote(this.safe(data[b])));
+
   debug('expanded to:', result);
 
   return result;
