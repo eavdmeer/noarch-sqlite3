@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.12.0
+- Resolve issue #24: allow $foo/:foo/@foo in object placeholder values
+
+## v1.11.1
 ## v1.11.0
 - Fix bug in expansion of '?' placeholders. Would fail if one of multiple values had a '?' in it.
 

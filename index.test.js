@@ -90,7 +90,7 @@ function standaloneTests(db)
       expect(db.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard?\' AND npa=\'both?\'');
     });
-    it('properly substitutes mixed type values in a querY', () =>
+    it('properly substitutes mixed type values in a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 121 ];
@@ -117,11 +117,18 @@ function standaloneTests(db)
     });
     it('properly expands bind parameters in an object', () =>
     {
-      const q = 'SELECT * FROM packages WHERE package=$pkg AND npa=:npa AND age=@age AND agelong=@agelong';
+      const q = 'SELECT * FROM packages WHERE package=$pkg AND npa=:npa AND agelong=@agelong AND age=@age';
       const d = { bad: 'value', age: 21, npa: 'web', pkg: 'sqlite3',
         agelong: 50 };
       expect(db.expandArgs(q, d))
-        .toBe('SELECT * FROM packages WHERE package=\'sqlite3\' AND npa=\'web\' AND age=21 AND agelong=50');
+        .toBe('SELECT * FROM packages WHERE package=\'sqlite3\' AND npa=\'web\' AND agelong=50 AND age=21');
+    });
+    it('properly substitutes multiple object values with a $foo in it', () =>
+    {
+      const q = 'INSERT INTO table (name, age) VALUES ($name, $age)';
+      const d = { name: 'age is in the $age field', age: 21 };
+      expect(db.expandArgs(q, d))
+        .toBe('INSERT INTO table (name, age) VALUES (\'age is in the $age field\', 21)');
     });
     it('properly expands date bind parameters in an object', () =>
     {
