@@ -1,12 +1,15 @@
 {
   "name": "noarch-sqlite3",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "A noarch module for interfacing NodeJS with sqlite3 system binaries",
   "main": "index.js",
   "scripts": {
     "test": "jest"
   },
-  "keywords": [ "sqlite3", "noarch" ],
+  "keywords": [
+    "sqlite3",
+    "noarch"
+  ],
   "author": "Adjel van der Meer <eavdmeer@gmail.com>",
   "license": "MIT",
   "repository": {
