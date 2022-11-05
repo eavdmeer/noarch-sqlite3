@@ -44,9 +44,6 @@ function processSet(set, autoConvert)
 
 function sqlite3Parse(html = '', autoConvert = false)
 {
-  // Early out for empty input
-  if (/^\s*$/gs.test(html)) { return []; }
-
   // Sanitize incoming HTML:
   // - remove all whitespace and newlines between tags
   // - make sure all tag names are lowercase
@@ -54,6 +51,9 @@ function sqlite3Parse(html = '', autoConvert = false)
     .replace(/<[/]?t[rhd]>/ig, v => v.toLowerCase())
     .replace(/[\s\n]*(<[/]?tr>)[\s\n]*/ig, '$1')
     .replace(/(<\/t[dh]>)[\s\n]*/ig, '$1');
+
+  // Early out for empty input
+  if (sanitized === '') { return []; }
 
   // Extract each row to an array of arrays like this:
   // [
