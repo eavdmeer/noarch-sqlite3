@@ -90,7 +90,14 @@ function standaloneTests(db)
       expect(db.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard?\' AND npa=\'both?\'');
     });
-    it('properly substitutes mixed type values in a querY', () =>
+    it('properly substitutes multiple object values with a $foo in it', () =>
+    {
+      const q = 'INSERT INTO table (name, age) VALUES ($name, $age)';
+      const d = { name: 'age is in the $age field', age: 21 };
+      expect(db.expandArgs(q, d))
+        .toBe('INSERT INTO table (name, age) VALUES (\'age is in the $age field\', 21)');
+    });
+    it('properly substitutes mixed type values in a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 121 ];
