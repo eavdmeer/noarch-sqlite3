@@ -6,7 +6,12 @@
   "scripts": {
     "test": "jest"
   },
-  "keywords": [],
+  "keywords": [
+    "database",
+    "sqlite3",
+    "noarch",
+    "pure javascript"
+  ],
   "author": "Adjel van der Meer <eavdmeer@gmail.com>",
   "license": "MIT",
   "repository": {
