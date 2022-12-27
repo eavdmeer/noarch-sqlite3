@@ -130,6 +130,13 @@ function standaloneTests(db)
       expect(db.expandArgs(q, d))
         .toBe('INSERT INTO table (name, age) VALUES (\'age is in the $age field\', 21)');
     });
+    it('properly substitutes object values like sqlite3', () =>
+    {
+      const q = 'INSERT INTO table (name, age, height) VALUES ($name, :age, @height)';
+      const d = { '$name': 'Pete', ':age': 30, '@height': 194 };
+      expect(db.expandArgs(q, d))
+        .toBe('INSERT INTO table (name, age, height) VALUES (\'Pete\', 30, 194)');
+    });
     it('properly expands date bind parameters in an object', () =>
     {
       const q = 'SELECT * FROM packages WHERE date=$date';

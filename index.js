@@ -136,7 +136,10 @@ Helper.prototype.expandArgs = function(...args)
   debug('found object bind parameters');
 
   // Replace keys like $key/@key/:key by their values in the data object.
-  const re = new RegExp(`[@:$](${Object.keys(data).join('|')})\\b`, 'g');
+  const re = Object.keys(data).every(k => /^[@:$]/.test(k)) ?
+    new RegExp(`(${Object.keys(data).map(v => v.replace('$', '\\$'))
+      .join('|')})\\b`, 'g') :
+    new RegExp(`[@:$](${Object.keys(data).join('|')})\\b`, 'g');
   const result = query.replace(re, (a, b) => this.quote(this.safe(data[b])));
 
   debug('expanded to:', result);
