@@ -155,9 +155,16 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
         db.run("UPDATE tbl SET name = ? WHERE id = ?", [ "bar", 2 ]);
 
         // As an object.
-        db.run("UPDATE tbl SET name = $name WHERE id = $id", { name`: "bar", id: 2 });
-        db.run("UPDATE tbl SET name = :name WHERE id = :id", { name`: "bar", id: 2 });
-        db.run("UPDATE tbl SET name = @name WHERE id = @id", { name`: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = $name WHERE id = $id", { name: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = :name WHERE id = :id", { name: "bar", id: 2 });
+        db.run("UPDATE tbl SET name = @name WHERE id = @id", { name: "bar", id: 2 });
+
+        // As an object with [sqlite3] compatibility
+        db.run("UPDATE tbl SET name = $name WHERE id = $id", { $name: "bar", $id: 2 });
+        db.run("UPDATE tbl SET name = :name WHERE id = :id", { ":name": "bar", ":id": 2 });
+        db.run("UPDATE tbl SET name = @name WHERE id = @id", { "@name": "bar", "@id": 2 });
+
+  > The [sqlite3] module that this API is mostly based on, requires that the placeholders in the query strictly match the fields in the object.
 
   In case you want to keep the callback as the 3rd parameter, you should set `param` to `[]` (empty Array), `{}` (empty object) or `undefined`
 

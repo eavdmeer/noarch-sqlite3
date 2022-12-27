@@ -133,7 +133,7 @@ function standaloneTests(db)
     it('properly substitutes object values like sqlite3', () =>
     {
       const q = 'INSERT INTO table (name, age, height) VALUES ($name, :age, @height)';
-      const d = { $name: 'Pete', ':age': 30, '@height': 194 };
+      const d = { '$name': 'Pete', ':age': 30, '@height': 194 };
       expect(db.expandArgs(q, d))
         .toBe('INSERT INTO table (name, age, height) VALUES (\'Pete\', 30, 194)');
     });
