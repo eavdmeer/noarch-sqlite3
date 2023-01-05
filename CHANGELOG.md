@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.13.0
+- Resolve issue #30: handle object parameters like sqlite3
+
 ## v1.12.0
 - Resolve issue #24: allow $foo/:foo/@foo in object placeholder values
 
