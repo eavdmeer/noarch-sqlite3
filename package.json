@@ -1,6 +1,6 @@
 {
   "name": "noarch-sqlite3",
-  "version": "1.12.1",
+  "version": "1.13.0",
   "description": "A noarch module for interfacing NodeJS with sqlite3 system binaries",
   "main": "index.js",
   "scripts": {
