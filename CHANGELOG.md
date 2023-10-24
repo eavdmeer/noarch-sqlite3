@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.2
+Fix high vulnerability in babel dependency
+
+## v1.13.1
+Fix high vulnerability in JSON5 dependency
+
 ## v1.13.0
 - Resolve issue #30: handle object parameters like sqlite3
 
