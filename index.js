@@ -173,8 +173,14 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
     child.on('error', err =>
     {
       const err2 = new Error(`Failed to run sqlite3: ${err.message}`);
-      if (callback) { callback(err2); }
-      reject(err2);
+      if (callback)
+      {
+        callback(err2);
+      }
+      else
+      {
+        reject(err2);
+      }
     });
 
     // Capture stdout
@@ -194,16 +200,28 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
       if (code !== 0 || stderr.includes('Error:'))
       {
         const err = new Error(`Failed to run query (code ${code}): ${stderr}`);
-        if (callback) { callback(err); }
-        reject(err);
+        if (callback)
+        {
+          callback(err);
+        }
+        else
+        {
+          reject(err);
+        }
         return;
       }
 
       // Early out for run/exec
       if (! returnResult)
       {
-        if (callback) { callback(null); }
-        resolve();
+        if (callback)
+        {
+          callback(null);
+        }
+        else
+        {
+          resolve();
+        }
         return;
       }
 
@@ -217,14 +235,26 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
         // PRAGMA busy_timeout=xxxx.
         set.shift();
         const res = set.length === 1 ? set.pop() : set;
-        if (callback) { callback(null, res); }
-        resolve(res);
+        if (callback)
+        {
+          callback(null, res);
+        }
+        else
+        {
+          resolve(res);
+        }
       }
       catch (ex)
       {
         const err2 = new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`);
-        if (callback) { callback(err2); }
-        reject(err2);
+        if (callback)
+        {
+          callback(err2);
+        }
+        else
+        {
+          reject(err2);
+        }
       }
     });
 
