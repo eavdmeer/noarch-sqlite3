@@ -167,115 +167,124 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
   // Create child process
   const child = spawn(this.options.sqlite3Path, pars, options);
 
-  // Catch execution errors
-  child.on('error', err =>
-    callback(new Error(`Failed to run sqlite3: ${err.message}`)));
-
-  // Capture stdout
-  let stdout = '';
-  child.stdout.on('data', d => stdout += d);
-
-  // Capture stderr
-  let stderr = '';
-  child.stderr.on('data', d => stderr += d);
-
-  child.on('close', code =>
+  return new Promise((resolve, reject) =>
   {
-    debug('exit code:', code);
-    debug('query output:', stdout);
-    debug('stderr output:', stderr);
-
-    if (code !== 0 || stderr.includes('Error:'))
+    // Catch execution errors
+    child.on('error', err =>
     {
-      callback(new Error(`Failed to run query (code ${code}): ${stderr}`));
-      return;
-    }
+      const err2 = new Error(`Failed to run sqlite3: ${err.message}`);
+      if (callback) { callback(err2); }
+      reject(err2);
+    });
 
-    // Early out for run/exec
-    if (! returnResult)
-    {
-      callback(null);
-      return;
-    }
+    // Capture stdout
+    let stdout = '';
+    child.stdout.on('data', d => stdout += d);
 
-    try
-    {
-      const set = this.useJson ?
-        JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
-        sqlite3Parse(stdout, this.options.autoConvert);
+    // Capture stderr
+    let stderr = '';
+    child.stderr.on('data', d => stderr += d);
 
-      // Remove the first result set. It will contain the output of the
-      // PRAGMA busy_timeout=xxxx.
-      set.shift();
-      callback(null, set.length === 1 ? set.pop() : set);
-    }
-    catch (ex)
+    child.on('close', code =>
     {
-      callback(new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`));
-    }
+      debug('exit code:', code);
+      debug('query output:', stdout);
+      debug('stderr output:', stderr);
+
+      if (code !== 0 || stderr.includes('Error:'))
+      {
+        const err = new Error(`Failed to run query (code ${code}): ${stderr}`);
+        if (callback) { callback(err); }
+        reject(err);
+        return;
+      }
+
+      // Early out for run/exec
+      if (! returnResult)
+      {
+        if (callback) { callback(null); }
+        resolve();
+        return;
+      }
+
+      try
+      {
+        const set = this.useJson ?
+          JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
+          sqlite3Parse(stdout, this.options.autoConvert);
+
+        // Remove the first result set. It will contain the output of the
+        // PRAGMA busy_timeout=xxxx.
+        set.shift();
+        const res = set.length === 1 ? set.pop() : set;
+        if (callback) { callback(null, res); }
+        resolve(res);
+      }
+      catch (ex)
+      {
+        const err2 = new Error(`Failed to parse sqlite3 answer: ${ex.message} in ${stdout}`);
+        if (callback) { callback(err2); }
+        reject(err2);
+      }
+    });
+
+    // Pass the queries on stdin
+    child.stdin.write(list.join(';'));
+    child.stdin.write(';');
+    child.stdin.end();
   });
-
-  // Pass the queries on stdin
-  child.stdin.write(list.join(';'));
-  child.stdin.write(';');
-  child.stdin.end();
 };
 Helper.prototype.all = function(...args)
 {
   const callback = typeof args[args.length - 1] === 'function' ?
     args.pop() : err => this.emit('error', err);
 
-  this.runQueries([ [ ...args ] ], true, callback);
-
-  return this;
+  return this.runQueries([ [ ...args ] ], true, callback);
 };
 Helper.prototype.get = function(...args)
 {
   const callback = typeof args[args.length - 1] === 'function' ?
     args.pop() : err => this.emit('error', err);
 
-  this.runQueries([ [ ...args ] ], true, (err, records) =>
+  return this.runQueries([ [ ...args ] ], true, (err, records) =>
   {
     callback(err, records ? records.pop() : records);
   });
-
-  return this;
 };
 Helper.prototype.run = function(...args)
 {
   const callback = typeof args[args.length - 1] === 'function' ?
     args.pop() : err => this.emit('error', err);
 
-  this.runQueries([ [ ...args ] ], false, (err, records) =>
+  return this.runQueries([ [ ...args ] ], false, (err, records) =>
   {
     callback(err, records ? records.pop() : records);
   });
-
-  return this;
 };
 Helper.prototype.runAll = function(...args)
 {
   const callback = typeof args[args.length - 1] === 'function' ?
     args.pop() : err => this.emit('error', err);
 
-  this.runQueries(...args, false, callback);
-
-  return this;
+  return this.runQueries(...args, false, callback);
 };
-Helper.prototype.each = function(...args)
+Helper.prototype.each = async function(...args)
 {
   // We may have a completion callback
   const complete = typeof args[args.length - 2] === 'function' ?
     args.pop() : undefined;
   const callback = args.pop();
 
-  this.all(...args, (err, rows) =>
+  try
   {
-    rows.forEach(row => callback(err, row));
-    if (complete) { complete(err, rows.length); }
-  });
-
-  return this;
+    const rows = await this.all(...args);
+    rows.forEach(row => callback(null, row));
+    if (complete) { complete(null, rows.length); }
+  }
+  catch (err)
+  {
+    if (complete) { complete(err); }
+  }
 };
 Helper.prototype.exec = Helper.prototype.run;
 Helper.prototype.close = function(callback)
@@ -283,7 +292,7 @@ Helper.prototype.close = function(callback)
   debug('fake close');
   if (callback) { callback(null); }
 
-  return true;
+  return Promise.resolve();
 };
 
 util.inherits(Helper, EventEmitter);
