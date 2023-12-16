@@ -103,7 +103,7 @@ run()
   .catch(err => console.log(err.message));
 ```
 
-All functions allow you to use either Promise-style calling or callback-style. You **cannot** mix the two styles. If you use callback-style, may functions will return the `Database` object to allow for function chaining. In case of Promise-style, that will not be available.
+All functions allow you to use either Promise-style calling or callback-style. You **cannot** mix the two styles. If you use callback-style, many functions will return the `Database` object to allow for function chaining. In case of Promise-style, that will not be available.
 
 
 ## API Documentation
@@ -156,7 +156,7 @@ Set a configuration [option](#options) for the database.
 <a id="run"></a>
 ### [&lt;Promise&gt;] run(sql [, param, ...] [, callback])
 
-Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure.
+Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. If the `callback` parameter is present, this will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure.
 
 * `sql`: The SQL query to run.
 
@@ -191,7 +191,7 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
 
 <a id="all"></a>
 ### [&lt;Promise&gt;] all(sql [, param, ...] [, callback])
-Run the SQL query with the specified parameters and call the `callback` with all result rows afterwards. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
+Run the SQL query with the specified parameters and call the `callback` with all result rows afterwards. If the `callback` parameter is present, this will return the `Database` object to allow for function chaining. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of the callback is: `function(err, rows) {}`. `rows` is an array. If the result set is empty, it will be an empty array, otherwise it will have an object for each result row which in turn contains the values of that row, like the [Database#get](#get) function.
 
@@ -217,7 +217,7 @@ In that case you will not receive an array of arrays!
 
 <a id="each"></a>
 ### [&lt;Promise&gt;] each(sql [, param, ...] [, callback] [, complete])
-Run the SQL query with the specified parameters and call the callback once for each result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
+Run the SQL query with the specified parameters and call the callback once for each result row. If the `callback` parameter is present, this will return the `Database` object to allow for function chaining. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of the callback is: `function(err, row) {}`. If the result set succeeds but is empty, the callback is never called. In all other cases, the callback is called once for every retrieved row. The order of calls correspond exactly to the order of rows in the result set.
 
@@ -232,7 +232,7 @@ This is an alias for [Database#run](#run)
 
 <a id="get"></a>
 ### [&lt;Promise&gt;] get(sql [, param, ...][, callback])
-Run the SQL query with the specified parameters and call the callback with a subsequent result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
+Run the SQL query with the specified parameters and call the callback with a subsequent result row. If the `callback` parameter is present, this will return the `Database` object to allow for function chaining. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of `callback` is: `function(err, row) {}`. If the result set is empty, the `row` parameter is undefined, otherwise it is an object containing the values for the first row.
 
@@ -240,7 +240,7 @@ The signature of `callback` is: `function(err, row) {}`. If the result set is em
 <a id="runall"></a>
 ### [&lt;Promise&gt;] runAll(queries [, callback])
 
-Run multiple queries in succession. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure.
+Run multiple queries in succession. If the `callback` parameter is present, this will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure.
 
 > The queries will be run in *exactly* the order in which they are found in the array
 

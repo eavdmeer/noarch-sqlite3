@@ -690,7 +690,7 @@ try
        VALUES
          ('dashboard', 'https://dev.azure.com/P00743-dashboard', 'web')`
     ];
-    await db.run(queries[0]);
+    await db.exec(queries[0]);
     await db.run(queries[1]);
   });
   afterAll(done =>
