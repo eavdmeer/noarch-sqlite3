@@ -3,7 +3,7 @@ const cp = require('node:child_process');
 const fs = require('fs');
 const async = require('async');
 
-const sqlite3 = require('./');
+const { Database } = require('./');
 
 // Need to mock execFileSync and execFile
 jest.mock('node:child_process');
@@ -35,10 +35,10 @@ function standaloneTests(db)
   {
     it('escapes single quotes correctly', () =>
     {
-      expect(db.safe('no quotes here')).toBe('no quotes here');
-      expect(db.safe('don\'t mess this up'))
+      expect(Database.safe('no quotes here')).toBe('no quotes here');
+      expect(Database.safe('don\'t mess this up'))
         .toBe('don\'\'t mess this up');
-      expect(db.safe('isn\'t it 5 o\'clock'))
+      expect(Database.safe('isn\'t it 5 o\'clock'))
         .toBe('isn\'\'t it 5 o\'\'clock');
     });
   });
@@ -46,12 +46,12 @@ function standaloneTests(db)
   {
     it('properly quotes values', () =>
     {
-      expect(db.quote('string value')).toBe('\'string value\'');
-      expect(db.quote(0)).toBe(0);
-      expect(db.quote(100)).toBe(100);
-      expect(db.quote(100.0)).toBe(100.0);
-      expect(db.quote('10')).toBe('\'10\'');
-      expect(db.quote('10.0')).toBe('\'10.0\'');
+      expect(Database.quote('string value')).toBe('\'string value\'');
+      expect(Database.quote(0)).toBe(0);
+      expect(Database.quote(100)).toBe(100);
+      expect(Database.quote(100.0)).toBe(100.0);
+      expect(Database.quote('10')).toBe('\'10\'');
+      expect(Database.quote('10.0')).toBe('\'10.0\'');
     });
   });
   describe('noarch-sqlite3.expandArgs', () =>
@@ -60,65 +60,65 @@ function standaloneTests(db)
     {
       const q = 'SELECT * FROM packages WHERE package=\'dashboard\'';
       let d = [];
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
       d = {};
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
       d = undefined;
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
     });
     it('properly substitutes a single value in a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=?';
       const d = [ 'dashboard' ];
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
-      expect(db.expandArgs(q, ...d))
+      expect(Database.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\'');
     });
     it('properly substitutes multiple values in a querY', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 'both' ];
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
-      expect(db.expandArgs(q, ...d))
+      expect(Database.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=\'both\'');
     });
     it('properly substitutes multiple values with a ? in it', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard?', 'both?' ];
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard?\' AND npa=\'both?\'');
-      expect(db.expandArgs(q, ...d))
+      expect(Database.expandArgs(q, ...d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard?\' AND npa=\'both?\'');
     });
     it('properly substitutes mixed type values in a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 121 ];
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'dashboard\' AND npa=121');
     });
     it('properly catches missing bind parameter values for a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard' ];
-      expect(() => db.expandArgs(q, d))
+      expect(() => Database.expandArgs(q, d))
         .toThrow(/Too few .* bind parameter values/);
-      expect(() => db.expandArgs(q, ...d))
+      expect(() => Database.expandArgs(q, ...d))
         .toThrow(/Too few .* bind parameter values/);
     });
     it('properly catches extra bind parameter values for a query', () =>
     {
       const q = 'SELECT * FROM packages WHERE package=? AND npa=?';
       const d = [ 'dashboard', 'both', 'too many' ];
-      expect(() => db.expandArgs(q, d))
+      expect(() => Database.expandArgs(q, d))
         .toThrow(/Too many .* bind parameter values/);
-      expect(() => db.expandArgs(q, ...d))
+      expect(() => Database.expandArgs(q, ...d))
         .toThrow(/Too many .* bind parameter values/);
     });
     it('properly expands bind parameters in an object', () =>
@@ -126,21 +126,21 @@ function standaloneTests(db)
       const q = 'SELECT * FROM packages WHERE package=$pkg AND npa=:npa AND agelong=@agelong AND age=@age';
       const d = { bad: 'value', age: 21, npa: 'web', pkg: 'sqlite3',
         agelong: 50 };
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('SELECT * FROM packages WHERE package=\'sqlite3\' AND npa=\'web\' AND agelong=50 AND age=21');
     });
     it('properly substitutes multiple object values with a $foo in it', () =>
     {
       const q = 'INSERT INTO table (name, age) VALUES ($name, $age)';
       const d = { name: 'age is in the $age field', age: 21 };
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('INSERT INTO table (name, age) VALUES (\'age is in the $age field\', 21)');
     });
     it('properly substitutes object values like sqlite3', () =>
     {
       const q = 'INSERT INTO table (name, age, height) VALUES ($name, :age, @height)';
       const d = { $name: 'Pete', ':age': 30, '@height': 194 };
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe('INSERT INTO table (name, age, height) VALUES (\'Pete\', 30, 194)');
     });
     it('properly expands date bind parameters in an object', () =>
@@ -148,14 +148,14 @@ function standaloneTests(db)
       const q = 'SELECT * FROM packages WHERE date=$date';
       const now = new Date();
       const d = { date: now };
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe(`SELECT * FROM packages WHERE date='${now.toISOString()}'`);
     });
     it('properly expands simple date bind parameters', () =>
     {
       const q = 'SELECT * FROM packages WHERE date=?';
       const d = new Date();
-      expect(db.expandArgs(q, d))
+      expect(Database.expandArgs(q, d))
         .toBe(`SELECT * FROM packages WHERE date='${d.toISOString()}'`);
     });
   });
@@ -675,7 +675,7 @@ function promiseTests(db)
 // new for -json to work
 try
 {
-  const db = new sqlite3.Database(dbFile);
+  const db = new Database(dbFile);
   db.configure('autoConvert', true);
 
   beforeAll(done =>
@@ -723,12 +723,12 @@ try
   {
     it('properly detects missing sqlite3 executable', () =>
     {
-      expect(() => new sqlite3.Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
+      expect(() => new Database('/tmp/broken.db3', { sqlite3Path: '/usr/bin/notthere' }))
         .toThrow(/sqlite3 executable .* not found/);
     });
     it('properly detects non-existing database directory', done =>
     {
-      const ndb = new sqlite3.Database('./missing-dir/broken.db3');
+      const ndb = new Database('./missing-dir/broken.db3');
       const query = `CREATE TABLE IF NOT EXISTS packages(
       package STRING NOT nulL,
       url STRING NOT NULL,
@@ -745,7 +745,7 @@ try
   if (db.useJson)
   {
     // Repeat the query tests with the -html option
-    const ldb = new sqlite3.Database(dbFile);
+    const ldb = new Database(dbFile);
     ldb.configure('autoConvert', true);
     ldb.useJson = false;
     queryTests(ldb);
@@ -777,11 +777,11 @@ catch (ex)
   {
     it('properly detects unsupported sqlite3 versions', () =>
     {
-      expect(() => new sqlite3.Database('/tmp/broken.db3'))
+      expect(() => new Database('/tmp/broken.db3'))
         .toThrow(/requires at least sqlite3/);
     });
   });
 
-  const db = new sqlite3.Database(dbFile);
+  const db = new Database(dbFile);
   standaloneTests(db);
 }
