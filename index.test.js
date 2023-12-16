@@ -10,6 +10,12 @@ jest.mock('node:child_process');
 
 const dbFile = '/tmp/test.db3';
 
+const defaultRecord = {
+  package: 'dashboard',
+  url: 'https://dev.azure.com/P00743-dashboard',
+  npa: 'web'
+};
+
 function standaloneTests(db)
 {
   describe('noarch-sqlite3.configure', () =>
@@ -133,7 +139,7 @@ function standaloneTests(db)
     it('properly substitutes object values like sqlite3', () =>
     {
       const q = 'INSERT INTO table (name, age, height) VALUES ($name, :age, @height)';
-      const d = { '$name': 'Pete', ':age': 30, '@height': 194 };
+      const d = { $name: 'Pete', ':age': 30, '@height': 194 };
       expect(db.expandArgs(q, d))
         .toBe('INSERT INTO table (name, age, height) VALUES (\'Pete\', 30, 194)');
     });
@@ -164,10 +170,10 @@ function standaloneTests(db)
 
 function queryTests(db)
 {
-  const msg = `noarch-sqlite3.querry (${db.useJson ? '-json' : '-html'})`;
+  const msg = `noarch-sqlite3.query (${db.useJson ? '-json' : '-html'})`;
   describe(msg, () =>
   {
-    it('properly selects the default record with query()', done =>
+    it('properly selects the default record with all()', done =>
     {
       const q = 'SELECT * FROM packages WHERE package=?';
       const d = [ 'dashboard' ];
@@ -178,13 +184,7 @@ function queryTests(db)
           done(err);
           return;
         }
-        expect(records).toEqual([
-          {
-            package: 'dashboard',
-            url: 'https://dev.azure.com/P00743-dashboard',
-            npa: 'web'
-          }
-        ]);
+        expect(records).toEqual([ defaultRecord ]);
         done();
       });
     });
@@ -199,11 +199,7 @@ function queryTests(db)
           done(err);
           return;
         }
-        expect(records).toEqual({
-          package: 'dashboard',
-          url: 'https://dev.azure.com/P00743-dashboard',
-          npa: 'web'
-        });
+        expect(records).toEqual(defaultRecord);
         done();
       });
     });
@@ -218,22 +214,7 @@ function queryTests(db)
           done(err);
           return;
         }
-        expect(records).toEqual([
-          [
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            }
-          ],
-          [
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            }
-          ]
-        ]);
+        expect(records).toEqual([ [ defaultRecord ], [ defaultRecord ] ]);
         done();
       });
     });
@@ -249,24 +230,20 @@ function queryTests(db)
           done(err);
           return;
         }
-        expect(records).toEqual([
-          {
-            package: 'dashboard',
-            url: 'https://dev.azure.com/P00743-dashboard',
-            npa: 'web'
-          }
-        ]);
+        expect(records).toEqual([ defaultRecord ]);
         done();
       });
     });
     it('properly inserts a new record', done =>
     {
+      const newRecord = {
+        package: 'dashboard-backend',
+        url: 'https://dev.azure.com/P00743-dashboard-backend',
+        npa: 'web'
+      };
+
       const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
-      const d = [
-        'dashboard-backend',
-        'https://dev.azure.com/P00743-dashboard-backend',
-        'web'
-      ];
+      const d = Object.values(newRecord);
       db.run(q, d, err =>
       {
         if (err)
@@ -282,11 +259,7 @@ function queryTests(db)
             return;
           }
           expect(records).toEqual([
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            },
+            defaultRecord,
             {
               package: 'dashboard-backend',
               url: 'https://dev.azure.com/P00743-dashboard-backend',
@@ -299,18 +272,26 @@ function queryTests(db)
     });
     it('properly inserts multiple records', done =>
     {
+      const newRecords = [
+        {
+          package: 'dashboard-backend',
+          url: 'https://dev.azure.com/P00743-dashboard-backend',
+          npa: 'web'
+        },
+        {
+          package: 'gmdb-agent',
+          url: 'https://dev.azure.com/P00743-gmdb-agent',
+          npa: 'both'
+        }
+      ];
       const q = `INSERT INTO
         packages (package, url, npa)
       VALUES
         (?,?,?),
         (?,?,?)`;
       const d = [
-        'dashboard-backend',
-        'https://dev.azure.com/P00743-dashboard-backend',
-        'web',
-        'gmdb-agent',
-        'https://dev.azure.com/P00743-gmdb-agent',
-        'both'
+        ...Object.values(newRecords[0]),
+        ...Object.values(newRecords[1])
       ];
       db.run(q, ...d, err =>
       {
@@ -326,28 +307,12 @@ function queryTests(db)
             done(err);
             return;
           }
-          expect(records).toEqual([
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            },
-            {
-              package: 'dashboard-backend',
-              url: 'https://dev.azure.com/P00743-dashboard-backend',
-              npa: 'web'
-            },
-            {
-              package: 'gmdb-agent',
-              url: 'https://dev.azure.com/P00743-gmdb-agent',
-              npa: 'both'
-            }
-          ]);
+          expect(records).toEqual([ defaultRecord, ...newRecords ]);
           done();
         });
       });
     });
-    it('properly runs calls the handler for each record', done =>
+    it('properly runs the handler for each record', done =>
     {
       const q = `INSERT INTO
         packages (package, url, npa)
@@ -390,6 +355,19 @@ function queryTests(db)
     });
     it('properly inserts multiple records in a transaction', done =>
     {
+      const newRecords = [
+        {
+          package: 'dashboard-backend-trans',
+          url: 'https://dev.azure.com/P00743-dashboard-backend',
+          npa: 'web'
+        },
+        {
+          package: 'gmdb-agent-trans',
+          url: 'https://dev.azure.com/P00743-gmdb-agent',
+          npa: 'both'
+        }
+      ];
+
       const q = `BEGIN TRANSACTION;
       INSERT INTO
         packages (package, url, npa)
@@ -398,13 +376,10 @@ function queryTests(db)
         (?,?,?);
       COMMIT;`;
       const d = [
-        'dashboard-backend-trans',
-        'https://dev.azure.com/P00743-dashboard-backend',
-        'web',
-        'gmdb-agent-trans',
-        'https://dev.azure.com/P00743-gmdb-agent',
-        'both'
+        ...Object.values(newRecords[0]),
+        ...Object.values(newRecords[1])
       ];
+
       db.run(q, d, err =>
       {
         if (err)
@@ -419,49 +394,39 @@ function queryTests(db)
             done(err);
             return;
           }
-          expect(records).toEqual([
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            },
-            {
-              package: 'dashboard-backend-trans',
-              url: 'https://dev.azure.com/P00743-dashboard-backend',
-              npa: 'web'
-            },
-            {
-              package: 'gmdb-agent-trans',
-              url: 'https://dev.azure.com/P00743-gmdb-agent',
-              npa: 'both'
-            }
-          ]);
+          expect(records).toEqual([ defaultRecord, ...newRecords ]);
           done();
         });
       });
     });
     it('properly inserts multiple records with runAll', done =>
     {
-      // Mix three styles: plain string, placeholders with array for the
-      // values and placeholders with plain arguments for the values
+      const newRecords = [
+        {
+          package: 'dashboard-backend-trans',
+          url: 'https://dev.azure.com/P00743-dashboard-backend',
+          npa: 'web'
+        },
+        {
+          package: 'gmdb-agent-trans',
+          url: 'https://dev.azure.com/P00743-gmdb-agent',
+          npa: 'both'
+        }
+      ];
+
       const q = [
         'BEGIN TRANSACTION',
         [
           'INSERT INTO packages (package, url, npa) VALUES (?,?,?)',
-          [
-            'dashboard-backend-trans',
-            'https://dev.azure.com/P00743-dashboard-backend',
-            'web'
-          ]
+          Object.values(newRecords[0])
         ],
         [
           'INSERT INTO packages (package, url, npa) VALUES (?,?,?)',
-          'gmdb-agent-trans',
-          'https://dev.azure.com/P00743-gmdb-agent',
-          'both'
+          ...Object.values(newRecords[1])
         ],
         'COMMIT'
       ];
+
       db.runAll(q, err =>
       {
         if (err)
@@ -476,23 +441,7 @@ function queryTests(db)
             done(err);
             return;
           }
-          expect(records).toEqual([
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            },
-            {
-              package: 'dashboard-backend-trans',
-              url: 'https://dev.azure.com/P00743-dashboard-backend',
-              npa: 'web'
-            },
-            {
-              package: 'gmdb-agent-trans',
-              url: 'https://dev.azure.com/P00743-gmdb-agent',
-              npa: 'both'
-            }
-          ]);
+          expect(records).toEqual([ defaultRecord, ...newRecords ]);
           done();
         });
       });
@@ -564,6 +513,19 @@ function queryTests(db)
     });
     it('properly handles transaction failure', done =>
     {
+      const newRecords = [
+        {
+          package: 'dashboard-backend-trans',
+          url: 'https://dev.azure.com/P00743-dashboard-backend',
+          npa: 'web'
+        },
+        {
+          package: 'gmdb-agent-trans',
+          url: 'https://dev.azure.com/P00743-gmdb-agent',
+          npa: 'both'
+        }
+      ];
+
       const q = `BEGIN TRANSACTION;
       INSERT INTO
         packages (package, url, badfield)
@@ -572,12 +534,8 @@ function queryTests(db)
         (?,?,?);
       COMMIT;`;
       const d = [
-        'dashboard-backend-trans',
-        'https://dev.azure.com/P00743-dashboard-backend',
-        'web',
-        'gmdb-agent-trans',
-        'https://dev.azure.com/P00743-gmdb-agent',
-        'both'
+        ...Object.values(newRecords[0]),
+        ...Object.values(newRecords[1])
       ];
       db.run(q, d, err =>
       {
@@ -589,13 +547,7 @@ function queryTests(db)
             done(err);
             return;
           }
-          expect(records).toEqual([
-            {
-              package: 'dashboard',
-              url: 'https://dev.azure.com/P00743-dashboard',
-              npa: 'web'
-            }
-          ]);
+          expect(records).toEqual([ defaultRecord ]);
           done();
         });
       });
@@ -611,12 +563,6 @@ function queryTests(db)
         done();
       });
     });
-    it('properly handles query errors without callback', () =>
-    {
-      const q = 'SELECT * FROM no_such_table';
-      db.on('error', err => expect(err.message).toMatch(/no such table/));
-      db.all(q);
-    });
     it('correctly detects SQL syntax errors', done =>
     {
       const q = 'SELECTING LIKE THIS WILL NOT WORK';
@@ -631,6 +577,100 @@ function queryTests(db)
   });
 }
 
+function promiseTests(db)
+{
+  afterEach(async() =>
+  {
+    jest.clearAllMocks();
+    await db.run('DELETE FROM packages WHERE package <> \'dashboard\'');
+  });
+
+  describe('noarch-sqlite promises', () =>
+  {
+    it('properly selects data with all()', async () =>
+    {
+      expect.assertions(1);
+
+      await expect(db.all('SELECT * FROM packages')).resolves
+        .toEqual([ defaultRecord ]);
+    });
+
+    it('properly gets a single record with get()', async () =>
+    {
+      expect.assertions(1);
+
+      await expect(db.get('SELECT * FROM packages')).resolves
+        .toEqual(defaultRecord);
+    });
+
+    it('properly selects the default record with all()', async () =>
+    {
+      expect.assertions(1);
+
+      const q = 'SELECT * FROM packages WHERE package=?';
+      const d = [ 'dashboard' ];
+      await expect(db.get(q, d)).resolves.toEqual(defaultRecord);
+    });
+
+    it('properly inserts a new record with run()', async () =>
+    {
+      expect.assertions(2);
+
+      const newRecord = {
+        package: 'dashboard-backend',
+        url: 'https://dev.azure.com/P00743-dashboard-backend',
+        npa: 'web'
+      };
+
+      const q = 'INSERT INTO packages (package, url, npa) VALUES (?,?,?)';
+      const d = Object.values(newRecord);
+      await expect(db.run(q, d)).resolves.toBe(undefined);
+
+      await expect(db.all('SELECT * FROM packages')).resolves
+        .toEqual([ defaultRecord, newRecord ]);
+    });
+
+    it('properly inserts multiple records with runAll', async () =>
+    {
+      const newRecords = [
+        {
+          package: 'dashboard-backend-trans',
+          url: 'https://dev.azure.com/P00743-dashboard-backend',
+          npa: 'web'
+        },
+        {
+          package: 'gmdb-agent-trans',
+          url: 'https://dev.azure.com/P00743-gmdb-agent',
+          npa: 'both'
+        }
+      ];
+
+      const q = [
+        'BEGIN TRANSACTION',
+        [
+          'INSERT INTO packages (package, url, npa) VALUES (?,?,?)',
+          Object.values(newRecords[0])
+        ],
+        [
+          'INSERT INTO packages (package, url, npa) VALUES (?,?,?)',
+          ...Object.values(newRecords[1])
+        ],
+        'COMMIT'
+      ];
+
+      await expect(db.runAll(q)).resolves.toBe(undefined);
+
+      await expect(db.all('SELECT * FROM packages')).resolves
+        .toEqual([ defaultRecord, ...newRecords ]);
+    });
+
+    it('properly returns a promise for fake close()', async () =>
+    {
+      await expect(db.close()).resolves.toBe(undefined);
+    });
+  });
+}
+
 // Figure out whether we have a real working sqlite3 that's sufficiently
 // new for -json to work
 try
@@ -640,6 +680,7 @@ try
 
   beforeAll(done =>
   {
+    // Add a default record
     const queries = [
       `CREATE TABLE IF NOT EXISTS packages(
       package STRING NOT nulL,
@@ -709,6 +750,7 @@ try
     ldb.useJson = false;
     queryTests(ldb);
   }
+  promiseTests(db);
 }
 catch (ex)
 {

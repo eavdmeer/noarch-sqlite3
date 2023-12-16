@@ -1,7 +1,5 @@
-const EventEmitter = require('events').EventEmitter;
 const { spawn, execFileSync } = require('node:child_process');
 const { sqlite3Parse } = require('./modules/sqlite3parse');
-const util = require('util');
 
 const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
@@ -266,55 +264,60 @@ Helper.prototype.runQueries = function(queries, returnResult, callback)
 };
 Helper.prototype.all = function(...args)
 {
-  const callback = typeof args[args.length - 1] === 'function' ?
-    args.pop() : err => this.emit('error', err);
+  const callback = typeof args.at(-1) === 'function' ? args.pop() : undefined;
 
-  return this.runQueries([ [ ...args ] ], true, callback);
+  const p = this.runQueries([ [ ...args ] ], true, callback);
+
+  return callback ? this : p;
 };
 Helper.prototype.get = function(...args)
 {
-  const callback = typeof args[args.length - 1] === 'function' ?
-    args.pop() : err => this.emit('error', err);
-
-  return this.runQueries([ [ ...args ] ], true, (err, records) =>
+  if (typeof args.at(-1) === 'function')
   {
-    callback(err, records ? records.pop() : records);
-  });
+    const callback = args.pop();
+    this.runQueries([ [ ...args ] ], true, (err, records) =>
+    {
+      callback(err, records ? records.pop() : records);
+    });
+    return this;
+
+  }
+
+  return this.runQueries([ [ ...args ] ], true)
+    .then(records => records?.pop());
 };
 Helper.prototype.run = function(...args)
 {
-  const callback = typeof args[args.length - 1] === 'function' ?
-    args.pop() : err => this.emit('error', err);
-
-  return this.runQueries([ [ ...args ] ], false, (err, records) =>
+  if (typeof args.at(-1) === 'function')
   {
-    callback(err, records ? records.pop() : records);
-  });
+    const callback = args.pop();
+    this.runQueries([ [ ...args ] ], false, callback);
+    return this;
+  }
+
+  return this.runQueries([ [ ...args ] ], false);
 };
 Helper.prototype.runAll = function(...args)
 {
-  const callback = typeof args[args.length - 1] === 'function' ?
-    args.pop() : err => this.emit('error', err);
+  const callback = typeof args.at(-1) === 'function' ? args.pop() : undefined;
 
-  return this.runQueries(...args, false, callback);
+  const p = this.runQueries(...args, false, callback);
+
+  return callback ? this : p;
 };
-Helper.prototype.each = async function(...args)
+Helper.prototype.each = function(...args)
 {
   // We may have a completion callback
-  const complete = typeof args[args.length - 2] === 'function' ?
-    args.pop() : undefined;
+  const complete = typeof args.at(-2) === 'function' ? args.pop() : undefined;
   const callback = args.pop();
 
-  try
+  const p = this.all(...args, (err, rows) =>
   {
-    const rows = await this.all(...args);
-    rows.forEach(row => callback(null, row));
-    if (complete) { complete(null, rows.length); }
-  }
-  catch (err)
-  {
-    if (complete) { complete(err); }
-  }
+    rows.forEach(row => callback(err, row));
+    if (complete) { complete(err, rows.length); }
+  });
+
+  return callback ? this : p;
 };
 Helper.prototype.exec = Helper.prototype.run;
 Helper.prototype.close = function(callback)
@@ -324,7 +327,5 @@ Helper.prototype.close = function(callback)
 
   return Promise.resolve();
 };
-
-util.inherits(Helper, EventEmitter);
 
 module.exports = { Database: Helper };
