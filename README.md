@@ -35,7 +35,7 @@ For this module to work, you **need** a version of the `sqlite3` command line to
 
 ## Features
 
-This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely elaviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
+This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely eleviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
 
 > Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
 

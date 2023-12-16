@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.0
+- Add support for promise-based call style
+- Update syntax to ecmascript 2020 and use Classes
+- Drop async dev dependency
+
 ## v1.13.2
 Fix high vulnerability in babel dependency
 

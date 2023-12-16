@@ -1,7 +1,6 @@
 /* global jest, describe, it, expect, beforeAll, afterAll, afterEach */
 const cp = require('node:child_process');
 const fs = require('fs');
-const async = require('async');
 
 const { Database } = require('./');
 
@@ -678,26 +677,21 @@ try
   const db = new Database(dbFile);
   db.configure('autoConvert', true);
 
-  beforeAll(done =>
+  beforeAll(async () =>
   {
     // Add a default record
     const queries = [
       `CREATE TABLE IF NOT EXISTS packages(
-      package STRING NOT nulL,
-      url STRING NOT NULL,
-      npa STRING NOT NULL);`,
+        package STRING NOT nulL,
+        url STRING NOT NULL,
+        npa STRING NOT NULL);`,
       `INSERT INTO packages
-      (package, url, npa)
-     VALUES
-       ('dashboard', 'https://dev.azure.com/P00743-dashboard', 'web')`
+        (package, url, npa)
+       VALUES
+         ('dashboard', 'https://dev.azure.com/P00743-dashboard', 'web')`
     ];
-    async.eachSeries(queries, (query, cb) =>
-    {
-      db.run(query, err => cb(err));
-    }, err =>
-    {
-      done(err);
-    });
+    await db.run(queries[0]);
+    await db.run(queries[1]);
   });
   afterAll(done =>
   {
