@@ -4,6 +4,7 @@
 - Add support for promise-based call style
 - Update syntax to ecmascript 2020 and use Classes
 - Drop async dev dependency
+- Update docs for promise-based calling
 
 ## v1.13.2
 Fix high vulnerability in babel dependency

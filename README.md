@@ -1,6 +1,5 @@
 # noarch-sqlite3
 
-> This should currently be considered untested and experimental! Be warned!
 > Please report any [issues](https://github.com/eavdmeer/noarch-sqlite3/issues) on GitHub
 
 ## Table of Contents
@@ -35,7 +34,7 @@ For this module to work, you **need** a version of the `sqlite3` command line to
 
 ## Features
 
-This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely eleviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
+This module allows you to interact with the `sqlite3` binary installed on your system to access SQLite databases. It is 100% JavaScript. This will entirely alleviate binary dependencies such as for the [sqlite3] and [better-sqlite] modules.
 
 > Caveat: Beware that, unlike with [sqlite3], you do **not** have a connection to the database by creating a `Database` object! Transactions **must** be run in a single `run()` or `exec()` command! Every query you run will be automatically preceded by `PRAGMA` commands to set busy timeout and enable foreign keys.
 
@@ -77,11 +76,13 @@ yarn add noarch-sqlite3
 Here is a very straightforward example of how to use `noarch-sqlite3`:
 
 ```js
-const sqlite3 = require("noarch-sqlite3");
+const { Database } = require('noarch-sqlite3');
 
-const db = new sqlite3.Database("./mydb.db3", [ options ]);
+const options = { busyTimeout: 20000 };
+const db = new Database('./mydb.db3', options);
 
-db.all("SELECT * FROM table", (err, records) =>
+// Callback style
+db.all('SELECT * FROM table', (err, records) =>
 {
   if (err)
   {
@@ -90,15 +91,30 @@ db.all("SELECT * FROM table", (err, records) =>
   }
   console.log(records);
 });
+
+// Promise style
+async function run()
+{
+  const records = await db.all('SELECT * FROM table');
+  console.log(records);
+}
+
+run()
+  .catch(err => console.log(err.message));
 ```
+
+All functions allow you to use either Promise-style calling or callback-style. You **cannot** mix the two styles. If you use callback-style, may functions will return the `Database` object to allow for function chaining. In case of Promise-style, that will not be available.
+
 
 ## API Documentation
 
 The API is mostly identical to that of the [sqlite3] package and its [API](https://github.com/TryGhost/node-sqlite3/wiki/API).
 
+> :point_up: this module allows you to use Promise-style calling, which is not available in the [sqlite3] package.
+
 <a id="new"></a>
 ### new sqlite3.Database(filename [, options])
-Return a new Database object. This will use the executable set by the `sqlite3Path`option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
+Return a new Database object. This will use the executable set by the `sqlite3Path` option to determine your current `sqlite3` command line version. It will detect whether JSON is supported (`Database.useJson`).
 
 * `filename`: The name of your new or already existing sqlite3 database
 * `options` (optional) Object containing valid option properties.
@@ -126,7 +142,7 @@ May throw:
 ### Database object:
 
 <a id="close"></a>
-### close([callback])
+### &lt;Promise&gt; close([callback])
 Fake close that is only there to provide drop-in compatibility with [sqlite3]
 
 * `callback` (optional): called immediately with `null`
@@ -138,9 +154,9 @@ Set a configuration [option](#options) for the database.
 
 
 <a id="run"></a>
-### run(sql [, param, ...] [, callback])
+### [&lt;Promise&gt;] run(sql [, param, ...] [, callback])
 
-Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
+Run all (semicolon separated) SQL queries in the supplied string. No result rows are retrieved. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure.
 
 * `sql`: The SQL query to run.
 
@@ -174,7 +190,7 @@ Run all (semicolon separated) SQL queries in the supplied string. No result rows
 
 
 <a id="all"></a>
-### all(sql [, param, ...] [, callback])
+### [&lt;Promise&gt;] all(sql [, param, ...] [, callback])
 Run the SQL query with the specified parameters and call the `callback` with all result rows afterwards. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of the callback is: `function(err, rows) {}`. `rows` is an array. If the result set is empty, it will be an empty array, otherwise it will have an object for each result row which in turn contains the values of that row, like the [Database#get](#get) function.
@@ -200,7 +216,7 @@ However, any query that does not return anything **will not** have an empty entr
 In that case you will not receive an array of arrays!
 
 <a id="each"></a>
-### each(sql [, param, ...] [, callback] [, complete])
+### [&lt;Promise&gt;] each(sql [, param, ...] [, callback] [, complete])
 Run the SQL query with the specified parameters and call the callback once for each result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of the callback is: `function(err, row) {}`. If the result set succeeds but is empty, the callback is never called. In all other cases, the callback is called once for every retrieved row. The order of calls correspond exactly to the order of rows in the result set.
@@ -215,16 +231,16 @@ This is an alias for [Database#run](#run)
 
 
 <a id="get"></a>
-### get(sql [, param, ...][, callback])
+### [&lt;Promise&gt;] get(sql [, param, ...][, callback])
 Run the SQL query with the specified parameters and call the callback with a subsequent result row. Will return the `Database` object to allow for function chaining. The parameters are the same as the [Database#run](#run) function, with the following differences:
 
 The signature of `callback` is: `function(err, row) {}`. If the result set is empty, the `row` parameter is undefined, otherwise it is an object containing the values for the first row.
 
 
 <a id="runall"></a>
-### runAll(queries [, callback])
+### [&lt;Promise&gt;] runAll(queries [, callback])
 
-Run multiple queries in succession. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, en `error` event will be emitted on any failure.
+Run multiple queries in succession. Will return the `Database` object to allow for function chaining. If present, on completion or failure, the `callback` will be called with either `null` or an `Error` object as its only argument. If no `callback` is present, the function will return a `Promise` that will resolve on success or reject on failure.
 
 > The queries will be run in *exactly* the order in which they are found in the array
 
@@ -254,7 +270,7 @@ Run multiple queries in succession. Will return the `Database` object to allow f
 <a id="versioninfo"></a>
 ### getVersionInfo()
 
-Return an object describing the verion of `sqlite3` found in the `sqlite3Path` on your system. For example:
+Return an object describing the version of `sqlite3` found in the `sqlite3Path` on your system. For example:
 ```js
 {
   version: "3.37.0",
@@ -265,7 +281,7 @@ Return an object describing the verion of `sqlite3` found in the `sqlite3Path` o
 
 ## Debugging
 
-Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the sqlite3parse module:
+Includes [debug](https://www.npmjs.com/package/debug) support for the main module as well as the `sqlite3parse` module:
 
 ```
 DEBUG="noarch-sqlite3,sqlite3parse" node my-code.js
