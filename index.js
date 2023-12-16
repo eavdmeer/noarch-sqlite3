@@ -4,7 +4,7 @@ const { sqlite3Parse } = require('./modules/sqlite3parse');
 const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
 
-/* eslint class-methods-use-this: { "exceptMethods": [ "close" ] } */
+/* eslint class-methods-use-this: ["error", { "exceptMethods": [ "close" ] } ] */
 
 const defaultOptions = {
   autoConvert: false,
