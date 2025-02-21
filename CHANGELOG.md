@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.0.1
+- Add CodeRabbit AI review
+- 
 ## v2.0.0
 - Add support for promise-based call style
 - Update syntax to ecmascript 2020 and use Classes
