@@ -336,7 +336,7 @@ class Database
 
     const p = this.all(...args, (err, rows) =>
     {
-      rows.forEach(row => callback(err, row));
+      rows?.forEach(row => callback(err, row));
       if (complete) { complete(err, rows.length); }
     });
 
