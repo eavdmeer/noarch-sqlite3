@@ -1,7 +1,7 @@
 /* global jest */
 /* eslint-disable no-sync */
 
-const cp = jest.genMockFromModule('node:child_process');
+const cp = jest.createMockFromModule('node:child_process');
 
 const realCp = jest.requireActual('node:child_process');
 
