@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.2
+- Update dependencies to fix CVE-2026-59869.
+
+## v2.0.1
+- Clean up README.
+
 ## v2.0.0
 - Add support for promise-based call style
 - Update syntax to ecmascript 2020 and use Classes
