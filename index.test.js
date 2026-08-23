@@ -39,6 +39,8 @@ function standaloneTests(db)
         .toBe('don\'\'t mess this up');
       expect(Database.safe('isn\'t it 5 o\'clock'))
         .toBe('isn\'\'t it 5 o\'\'clock');
+      expect(Database.safe({ one: 1 }))
+        .toBe('x\'7b226f6e65223a317d\'');
     });
   });
   describe('noarch-sqlite3.quote', () =>
@@ -51,6 +53,8 @@ function standaloneTests(db)
       expect(Database.quote(100.0)).toBe(100.0);
       expect(Database.quote('10')).toBe('\'10\'');
       expect(Database.quote('10.0')).toBe('\'10.0\'');
+      expect(Database.quote('x\'68656c6c6f\''))
+        .toBe('x\'68656c6c6f\'');
     });
   });
   describe('noarch-sqlite3.expandArgs', () =>

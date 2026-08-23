@@ -89,14 +89,19 @@ class Database
   static safe(data)
   {
     debug(`sanitize ${JSON.stringify(data)}`);
-    return typeof data === 'string' ? data.replace(/'/g, '\'\'') : data;
+    const type = typeof data;
+    return type === 'boolean' ? data ? 1 : 0 :
+      type === 'number' ? data :
+        type === 'string' ? data.replace(/'/g, '\'\'') :
+          data instanceof Date ? data.toISOString() :
+            `x'${Buffer.from(JSON.stringify(data), 'utf8').toString('hex')}'`;
   }
 
   static quote(data)
   {
     debug(`quote ${JSON.stringify(data)}`);
-    return data instanceof Date ? `'${data.toISOString()}'` :
-      typeof data === 'string' ? `'${data}'` : data;
+    return typeof data === 'string' && ! /^x'[0-9a-f]+'$/.test(data) ?
+      `'${data}'` : data;
   }
 
   static expandArgs(...args)
