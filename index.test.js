@@ -342,8 +342,8 @@ function queryTests(db)
             return;
           }
           expect(count).toBe(3);
-          expect(each).toBeCalledTimes(3);
-          expect(each).lastCalledWith(null, {
+          expect(each).toHaveBeenCalledTimes(3);
+          expect(each).toHaveBeenCalledWith(null, {
             package: 'gmdb-agent',
             url: 'https://dev.azure.com/P00743-gmdb-agent',
             npa: 'both'
