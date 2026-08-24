@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.3
+- Make sure to handle all possible data types in `safe()`.
+- Guard against `all()` returning `rows` as `undefined` to `each()`.
+- Add a test case for `each()` with no results.
+
+
 ## v2.0.2
 - Update dependencies to fix CVE-2026-59869.
 
