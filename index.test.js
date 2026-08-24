@@ -39,6 +39,8 @@ function standaloneTests(db)
         .toBe('don\'\'t mess this up');
       expect(Database.safe('isn\'t it 5 o\'clock'))
         .toBe('isn\'\'t it 5 o\'\'clock');
+      expect(Database.safe({ one: 1 }))
+        .toBe('x\'7b226f6e65223a317d\'');
     });
   });
   describe('noarch-sqlite3.quote', () =>
@@ -51,6 +53,8 @@ function standaloneTests(db)
       expect(Database.quote(100.0)).toBe(100.0);
       expect(Database.quote('10')).toBe('\'10\'');
       expect(Database.quote('10.0')).toBe('\'10.0\'');
+      expect(Database.quote('x\'68656c6c6f\''))
+        .toBe('x\'68656c6c6f\'');
     });
   });
   describe('noarch-sqlite3.expandArgs', () =>
@@ -348,6 +352,42 @@ function queryTests(db)
             url: 'https://dev.azure.com/P00743-gmdb-agent',
             npa: 'both'
           });
+          done();
+        });
+      });
+    });
+    it('properly runs each with zero records', done =>
+    {
+      const q = `INSERT INTO
+        packages (package, url, npa)
+      VALUES
+        (?,?,?),
+        (?,?,?)`;
+      const d = [
+        'dashboard-backend',
+        'https://dev.azure.com/P00743-dashboard-backend',
+        'web',
+        'gmdb-agent',
+        'https://dev.azure.com/P00743-gmdb-agent',
+        'both'
+      ];
+      db.run(q, d, err =>
+      {
+        if (err)
+        {
+          done(err);
+          return;
+        }
+        const each = jest.fn();
+        db.each('SELECT * FROM packages WHERE package=\'xxx\'', each, (err, count) =>
+        {
+          if (err)
+          {
+            done(err);
+            return;
+          }
+          expect(count).toBe(0);
+          expect(each).toHaveBeenCalledTimes(0);
           done();
         });
       });
