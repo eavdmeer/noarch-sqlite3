@@ -173,8 +173,7 @@ function standaloneTests(db)
 
 function queryTests(db)
 {
-  const msg = `noarch-sqlite3.query (${db.useJson ? '-json' : '-html'})`;
-  describe(msg, () =>
+  describe('noarch-sqlite3.query', () =>
   {
     it('properly selects the default record with all()', done =>
     {
@@ -715,7 +714,6 @@ function promiseTests(db)
 try
 {
   const db = new Database(dbFile);
-  db.configure('autoConvert', true);
 
   beforeAll(async () =>
   {
@@ -776,14 +774,6 @@ try
   });
   standaloneTests(db);
   queryTests(db);
-  if (db.useJson)
-  {
-    // Repeat the query tests with the -html option
-    const ldb = new Database(dbFile);
-    ldb.configure('autoConvert', true);
-    ldb.useJson = false;
-    queryTests(ldb);
-  }
   promiseTests(db);
 }
 catch (ex)
