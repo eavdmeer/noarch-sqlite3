@@ -1,5 +1,4 @@
 const { spawn, execFileSync } = require('node:child_process');
-const { sqlite3Parse } = require('./modules/sqlite3parse');
 
 const debug = require('debug')('noarch-sqlite3');
 const semver = require('semver');
@@ -7,7 +6,6 @@ const semver = require('semver');
 /* eslint class-methods-use-this: ["error", { "exceptMethods": [ "close" ] } ] */
 
 const defaultOptions = {
-  autoConvert: false,
   busyTimeout: 30000,
   enableForeignKeys: true,
   sqlite3Path: '/usr/bin/sqlite3',
@@ -16,6 +14,8 @@ const defaultOptions = {
 
 class Database
 {
+  #versionInfo;
+
   constructor(dbPath, options = {})
   {
     this.db = dbPath;
@@ -24,16 +24,9 @@ class Database
     debug(`new database helper for path ${this.db}`);
     debug(`options are: ${JSON.stringify(this.options, null, 2)}`);
 
-    this.requiredVersion = {
-      json: '3.33.0',
-      // TODO: figure out what version introduced -html support
-      html: '3.0.0'
-    };
+    this.requiredVersion = '3.33.0';
 
-    // Only available for sqlite3 >= 3.33.0
-    this.useJson = false;
-
-    this.versionInfo = {
+    this.#versionInfo = {
       version: 'unknown',
       date: 'unknown',
       hash: 'unknown'
@@ -44,9 +37,9 @@ class Database
     {
       const stdout = execFileSync(this.options.sqlite3Path, [ '--version' ]);
       const parts = stdout.toString().split(' ');
-      this.versionInfo.version = parts[0];
-      this.versionInfo.date = `${parts[1]} ${parts[2]}`;
-      this.versionInfo.hash = parts[3];
+      this.#versionInfo.version = parts[0];
+      this.#versionInfo.date = `${parts[1]} ${parts[2]}`;
+      this.#versionInfo.hash = parts[3];
     }
     catch (ex)
     {
@@ -56,20 +49,16 @@ class Database
     }
 
     // Version sanity checks
-    if (! semver.valid(this.versionInfo.version))
+    if (! semver.valid(this.#versionInfo.version))
     {
-      throw new Error(`Invalid sqlite3 version detected: ${this.versionInfo.version}`);
+      throw new Error(`Invalid sqlite3 version detected: ${this.#versionInfo.version}`);
     }
-    if (semver.lt(this.versionInfo.version, this.requiredVersion.html))
+    if (semver.lt(this.#versionInfo.version, this.requiredVersion))
     {
-      throw new Error(`noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion.html}. Found ${this.versionInfo.version}`);
-    }
-    if (semver.gte(this.versionInfo.version, this.requiredVersion.json))
-    {
-      this.useJson = true;
+      throw new Error(`noarch-sqlite3 requires at least sqlite3 ${this.requiredVersion}. Found ${this.#versionInfo.version}`);
     }
 
-    debug(`detected version: ${JSON.stringify(this.versionInfo, null, 2)}`);
+    debug(`detected version: ${JSON.stringify(this.#versionInfo, null, 2)}`);
   }
 
   configure(name, value)
@@ -81,9 +70,9 @@ class Database
     this.options[name] = value;
   }
 
-  getVersionInfo()
+  get versionInfo()
   {
-    return this.versionInfo;
+    return this.#versionInfo;
   }
 
   static safe(data)
@@ -176,9 +165,7 @@ class Database
       Database.expandArgs(...args) : args));
 
     // Use the correct options, depending on the installed version
-    const pars = this.useJson ?
-      [ '-json', this.db ] :
-      [ '-html', '-header', this.db ];
+    const pars = [ '-json', this.db ];
 
     const options = { maxBuffer: this.options.outputBufferSize };
 
@@ -245,9 +232,8 @@ class Database
 
         try
         {
-          const set = this.useJson ?
-            JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],').replace(/,$/, '')} ]`) :
-            sqlite3Parse(stdout, this.options.autoConvert);
+          const set = JSON.parse(`[ ${stdout.replace(/}]\n/g, '}],')
+            .replace(/,$/, '')} ]`);
 
           // Remove the first result set. It will contain the output of the
           // PRAGMA busy_timeout=xxxx.

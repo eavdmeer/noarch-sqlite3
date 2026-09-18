@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.0.0
+- Drop HTML support for older sqlite3 versions. Latest sqlite3 versions have changed the HTML output format and dropped `</TH>` and `</TD>` close tags.
+
 ## v2.0.4
 - Resolve CVE-2026-84375 in js-yaml dependency of jest.
 
