@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.0.4
+- Resolve CVE-2026-84375 in js-yaml dependency of jest.
+
 ## v2.0.3
 - Make sure to handle all possible data types in `safe()`.
 - Guard against `all()` returning `rows` as `undefined` to `each()`.
