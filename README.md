@@ -27,10 +27,7 @@
 
 ## Requirements
 
-For this module to work, you **need** a version of the `sqlite3` command line tool installed on your system. Many versions will work, however, it is strongly recommended that you install version 3.33.0 or above as this provides native JSON support. Versions below 3.33.0 will use HTML output as an alternative.
-
-> Caveat: if you use an older version, **all columns will be returned as strings by default.** Please look at the `autoConvert` [option](#options) to change that behavior
-
+For this module to work, you **need** a version of the `sqlite3` command line  tool that provides native JSON support installed on your system. Any versions above 3.33.0 will work.
 
 ## Features
 
@@ -53,8 +50,7 @@ COMMIT;
 ```
 A test inserting 15000 records took 258 ms, so around 58000 records/s.
 
-Inserting those same 15000 records and reading them back took 272 ms for
-JSON support and 370 ms for HTML.
+Inserting those same 15000 records and reading them back took 272 ms.
 
 ## Install
 
@@ -120,8 +116,6 @@ Return a new Database object. This will use the executable set by the `sqlite3Pa
 * `options` (optional) Object containing valid option properties.
 
   <a id="options"></a>Options can be one of the following:
-
-  * `autoConvert`: instead of the default behavior of returning all values as strings, auto-convert 'true' and 'false' to their boolean values and '1'/'1.1' to their numeric values (only applies to pre-3.33.0 versions of `sqlite3`)
 
   * `busyTimeout`: allows you to override the default busy timeout of 30000 ms
 
@@ -268,9 +262,9 @@ Run multiple queries in succession. If the `callback` parameter is present, this
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
 <a id="versioninfo"></a>
-### getVersionInfo()
+### get versionInfo()
 
-Return an object describing the version of `sqlite3` found in the `sqlite3Path` on your system. For example:
+This 'getter' will return an object describing the version of `sqlite3` found in the `sqlite3Path` on your system. For example:
 ```js
 {
   version: "3.37.0",
