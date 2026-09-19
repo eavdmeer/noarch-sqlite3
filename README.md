@@ -19,7 +19,7 @@
   * [exec](#exec)
   * [get](#get)
   * [runAll](#runall)
-  * [getVersionInfo](#versioninfo)
+  * [get versionInfo](#versioninfo)
 * [Debugging](#debugging)
 * [License](#license)
 * [Changelog](#changelog)
