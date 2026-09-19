@@ -27,7 +27,10 @@
 
 ## Requirements
 
-For this module to work, you **need** a version of the `sqlite3` command line  tool that provides native JSON support installed on your system. Any versions above 3.33.0 will work.
+For this module to work, you **need** a version of the `sqlite3` command line  tool installed on your system that provides native JSON support. Any versions above 3.33.0 should work.
+
+> :bulb: version 3.0 of this module has dropped support for HTML output! Recent `sqlite3` versions have changed the output format, making supporting it too fragile. With version 3.33.0 having been released on August 14, 2020, most current systems will have JSON support.
+
 
 ## Features
 
@@ -268,7 +271,7 @@ This 'getter' will return an object describing the version of `sqlite3` found in
 ```js
 {
   version: "3.37.0",
-  data: "2021-12-09 01:34:53",
+  date: "2021-12-09 01:34:53",
   hash: "9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl"
 }
 ```
