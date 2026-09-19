@@ -19,7 +19,7 @@
   * [exec](#exec)
   * [get](#get)
   * [runAll](#runall)
-  * [getVersionInfo](#versioninfo)
+  * [get versionInfo](#versioninfo)
 * [Debugging](#debugging)
 * [License](#license)
 * [Changelog](#changelog)
@@ -27,9 +27,9 @@
 
 ## Requirements
 
-For this module to work, you **need** a version of the `sqlite3` command line tool installed on your system. Many versions will work, however, it is strongly recommended that you install version 3.33.0 or above as this provides native JSON support. Versions below 3.33.0 will use HTML output as an alternative.
+For this module to work, you **need** a version of the `sqlite3` command line  tool installed on your system that provides native JSON support. Any versions above 3.33.0 should work.
 
-> Caveat: if you use an older version, **all columns will be returned as strings by default.** Please look at the `autoConvert` [option](#options) to change that behavior
+> :bulb: version 3.0 of this module has dropped support for HTML output! Recent `sqlite3` versions have changed the output format, making supporting it too fragile. With version 3.33.0 having been released on August 14, 2020, most current systems will have JSON support.
 
 
 ## Features
@@ -53,8 +53,7 @@ COMMIT;
 ```
 A test inserting 15000 records took 258 ms, so around 58000 records/s.
 
-Inserting those same 15000 records and reading them back took 272 ms for
-JSON support and 370 ms for HTML.
+Inserting those same 15000 records and reading them back took 272 ms.
 
 ## Install
 
@@ -120,8 +119,6 @@ Return a new Database object. This will use the executable set by the `sqlite3Pa
 * `options` (optional) Object containing valid option properties.
 
   <a id="options"></a>Options can be one of the following:
-
-  * `autoConvert`: instead of the default behavior of returning all values as strings, auto-convert 'true' and 'false' to their boolean values and '1'/'1.1' to their numeric values (only applies to pre-3.33.0 versions of `sqlite3`)
 
   * `busyTimeout`: allows you to override the default busy timeout of 30000 ms
 
@@ -268,13 +265,13 @@ Run multiple queries in succession. If the `callback` parameter is present, this
 * `callback(err)` (optional): Will be called if an `Error` object if any error occurs during execution.
 
 <a id="versioninfo"></a>
-### getVersionInfo()
+### get versionInfo()
 
-Return an object describing the version of `sqlite3` found in the `sqlite3Path` on your system. For example:
+This 'getter' will return an object describing the version of `sqlite3` found in the `sqlite3Path` on your system. For example:
 ```js
 {
   version: "3.37.0",
-  data: "2021-12-09 01:34:53",
+  date: "2021-12-09 01:34:53",
   hash: "9ff244ce0739f8ee52a3e9671adb4ee54c83c640b02e3f9d185fd2f9a179aapl"
 }
 ```

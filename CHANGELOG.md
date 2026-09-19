@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.0.1
+- Update README for dropped HTML support.
+- Set up OIDC trusted staged publishing.
+
 ## v3.0.0
 - Drop HTML support for older sqlite3 versions. Latest sqlite3 versions have changed the HTML output format and dropped `</TH>` and `</TD>` close tags.
 
